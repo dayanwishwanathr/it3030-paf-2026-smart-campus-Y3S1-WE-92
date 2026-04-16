@@ -1,0 +1,59 @@
+package com.sliit.orbit_backend.security;
+
+import com.sliit.orbit_backend.model.User;
+import com.sliit.orbit_backend.model.enums.AuthProvider;
+import com.sliit.orbit_backend.model.enums.Role;
+import com.sliit.orbit_backend.repository.UserRepository;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
+import org.springframework.stereotype.Component;
+
+import java.io.IOException;
+
+@Component
+@RequiredArgsConstructor
+public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
+
+    private final JwtUtil jwtUtil;
+    private final UserRepository userRepository;
+
+    @Value("${app.frontend.url}")
+    private String frontendUrl;
+
+    @Override
+    public void onAuthenticationSuccess(HttpServletRequest request,
+                                        HttpServletResponse response,
+                                        Authentication authentication)
+            throws IOException, ServletException {
+
+        OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
+
+        String email       = oAuth2User.getAttribute("email");
+        String name        = oAuth2User.getAttribute("name");
+        String picture     = oAuth2User.getAttribute("picture");
+
+        // Save new Google user if first time login, otherwise load existing
+        User user = userRepository.findByEmail(email).orElseGet(() -> {
+            User newUser = User.builder()
+                    .name(name)
+                    .email(email)
+                    .role(Role.USER)
+                    .provider(AuthProvider.GOOGLE)
+                    .profilePicture(picture)
+                    .build();
+            return userRepository.save(newUser);
+        });
+
+        // Generate JWT and redirect to frontend with token in URL
+        String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
+        String redirectUrl = frontendUrl + "/oauth2/success?token=" + token;
+
+        getRedirectStrategy().sendRedirect(request, response, redirectUrl);
+    }
+}
