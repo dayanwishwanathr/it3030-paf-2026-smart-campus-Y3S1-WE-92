@@ -1,0 +1,25 @@
+spring.application.name=orbit-backend
+server.port=8080
+
+# ─── MongoDB ───────────────────────────────────────────────────────────────────
+spring.data.mongodb.uri=mongodb+srv://USERNAME:PASSWORD@cluster0.xxxx.mongodb.net/orbit_db?appName=Cluster0
+
+# ─── JWT ───────────────────────────────────────────────────────────────────────
+app.jwt.secret=YOUR_STRONG_SECRET_KEY_AT_LEAST_32_CHARS
+app.jwt.expiration=86400000
+
+# ─── Google OAuth2 ─────────────────────────────────────────────────────────────
+spring.security.oauth2.client.registration.google.client-id=YOUR_GOOGLE_CLIENT_ID
+spring.security.oauth2.client.registration.google.client-secret=YOUR_GOOGLE_CLIENT_SECRET
+spring.security.oauth2.client.registration.google.scope=email,profile
+spring.security.oauth2.client.registration.google.redirect-uri={baseUrl}/login/oauth2/code/{registrationId}
+
+# ─── Frontend URL (used in OAuth2 redirect after Google login) ─────────────────
+app.frontend.url=http://localhost:5173
+
+# ─── CORS ──────────────────────────────────────────────────────────────────────
+app.cors.allowed-origins=http://localhost:5173
+
+# ─── File Upload ───────────────────────────────────────────────────────────────
+spring.servlet.multipart.max-file-size=10MB
+spring.servlet.multipart.max-request-size=30MB
