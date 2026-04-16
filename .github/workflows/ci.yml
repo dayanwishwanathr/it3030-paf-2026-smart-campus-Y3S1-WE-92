@@ -48,6 +48,9 @@ jobs:
           spring.servlet.multipart.max-request-size=30MB
           EOF
 
+      - name: Make mvnw executable
+        run: chmod +x orbit-backend/mvnw
+
       - name: Build with Maven
         run: cd orbit-backend && ./mvnw clean package -DskipTests
 
