@@ -22,7 +22,7 @@ const Navbar = () => {
           <Link to={user?.role === 'ADMIN' ? '/admin/dashboard' : '/dashboard'}
             className="flex items-center gap-2 font-bold text-xl text-gray-900"
           >
-            🛰️ <span>SLIIT Orbit</span>
+            🛰️ <span>SLIIT OrBIT</span>
           </Link>
 
           {/* Desktop nav links */}
