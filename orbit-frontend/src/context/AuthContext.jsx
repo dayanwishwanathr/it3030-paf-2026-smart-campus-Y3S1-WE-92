@@ -41,6 +41,8 @@ export const AuthProvider = ({ children }) => {
       // Redirect based on role
       if (data.role === 'ADMIN') {
         navigate('/admin/dashboard')
+      } else if (data.role === 'MANAGER') {
+        navigate('/manager/dashboard')
       } else {
         navigate('/dashboard')
       }
