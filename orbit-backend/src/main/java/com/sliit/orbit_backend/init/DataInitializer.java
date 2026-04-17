@@ -21,24 +21,40 @@ public class DataInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) {
         seedAdmin();
+        seedManager();
     }
 
+    // ── Admin ─────────────────────────────────────────────────────────────────
     private void seedAdmin() {
-        String adminEmail = "admin@sliitorbit.lk";
-
-        if (!userRepository.existsByEmail(adminEmail)) {
-            User admin = User.builder()
+        String email = "admin@sliitorbit.lk";
+        if (!userRepository.existsByEmail(email)) {
+            userRepository.save(User.builder()
                     .name("Orbit Admin")
-                    .email(adminEmail)
+                    .email(email)
                     .password(passwordEncoder.encode("Admin@1234"))
                     .role(Role.ADMIN)
                     .provider(AuthProvider.LOCAL)
-                    .build();
-
-            userRepository.save(admin);
-            log.info("✅ Admin user seeded successfully → {}", adminEmail);
+                    .build());
+            log.info("✅ Admin seeded → {}", email);
         } else {
-            log.info("ℹ️  Admin user already exists, skipping seed.");
+            log.info("ℹ️  Admin already exists, skipping.");
+        }
+    }
+
+    // ── Manager ───────────────────────────────────────────────────────────────
+    private void seedManager() {
+        String email = "manager@sliitorbit.lk";
+        if (!userRepository.existsByEmail(email)) {
+            userRepository.save(User.builder()
+                    .name("Orbit Manager")
+                    .email(email)
+                    .password(passwordEncoder.encode("Manager@1234"))
+                    .role(Role.MANAGER)
+                    .provider(AuthProvider.LOCAL)
+                    .build());
+            log.info("✅ Manager seeded → {}", email);
+        } else {
+            log.info("ℹ️  Manager already exists, skipping.");
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.sliit.orbit_backend.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import com.sliit.orbit_backend.security.JwtAuthFilter;
 import com.sliit.orbit_backend.security.OAuth2SuccessHandler;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Configuration
@@ -31,6 +33,9 @@ public class SecurityConfig {
     private final JwtAuthFilter jwtAuthFilter;
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
 
+    @Value("${app.cors.allowed-origins}")
+    private String allowedOriginsRaw;
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -40,11 +45,26 @@ public class SecurityConfig {
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
 
-                // ── Public endpoints ──────────────────────────────────────
+                // ── Public ────────────────────────────────────────────────
                 .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/resources/**").permitAll()
 
-                // ── Admin only ────────────────────────────────────────────
+                // ── Resources: public read, MANAGER manages ───────────────
+                .requestMatchers(HttpMethod.GET,    "/api/resources/**").permitAll()
+                .requestMatchers(HttpMethod.POST,   "/api/resources/**").hasRole("MANAGER")
+                .requestMatchers(HttpMethod.PUT,    "/api/resources/**").hasRole("MANAGER")
+                .requestMatchers(HttpMethod.PATCH,  "/api/resources/**").hasRole("MANAGER")
+                .requestMatchers(HttpMethod.DELETE, "/api/resources/**").hasRole("MANAGER")
+
+                // ── Bookings: MANAGER approves/rejects, USER creates ──────
+                .requestMatchers("/api/bookings/**").hasAnyRole("USER", "MANAGER", "ADMIN")
+
+                // ── Tickets: TECHNICIAN + ADMIN manage, USER creates ──────
+                .requestMatchers("/api/tickets/**").hasAnyRole("USER", "TECHNICIAN", "MANAGER", "ADMIN")
+
+                // ── Notifications: any logged-in user ─────────────────────
+                .requestMatchers("/api/notifications/**").authenticated()
+
+                // ── Users: ADMIN only ─────────────────────────────────────
                 .requestMatchers("/api/users/**").hasRole("ADMIN")
 
                 // ── Everything else requires login ────────────────────────
@@ -72,7 +92,9 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:5173"));
+        // Read comma-separated origins from application.properties
+        List<String> origins = Arrays.asList(allowedOriginsRaw.split(","));
+        config.setAllowedOrigins(origins);
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
