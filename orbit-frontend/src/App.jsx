@@ -11,36 +11,45 @@ import OAuth2Success  from './pages/auth/OAuth2Success'
 import DashboardPage  from './pages/dashboard/DashboardPage'
 
 // Admin pages
-import AdminDashboard      from './pages/admin/AdminDashboard'
-import UserManagementPage  from './pages/admin/UserManagementPage'
+import AdminDashboard     from './pages/admin/AdminDashboard'
+import UserManagementPage from './pages/admin/UserManagementPage'
+
+// Manager pages
+import ManagerDashboard from './pages/manager/ManagerDashboard'
 
 const App = () => {
   return (
     <AuthProvider>
       <Routes>
 
-        {/* ── Public routes ───────────────────────────────────────── */}
-        <Route path="/login"           element={<LoginPage />} />
-        <Route path="/register"        element={<RegisterPage />} />
-        <Route path="/oauth2/success"  element={<OAuth2Success />} />
+        {/* ── Public ──────────────────────────────────────────────── */}
+        <Route path="/login"          element={<LoginPage />} />
+        <Route path="/register"       element={<RegisterPage />} />
+        <Route path="/oauth2/success" element={<OAuth2Success />} />
 
-        {/* ── Protected — any logged-in user ──────────────────────── */}
+        {/* ── USER + TECHNICIAN ────────────────────────────────────── */}
         <Route path="/dashboard" element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={['USER', 'TECHNICIAN']}>
             <DashboardPage />
           </ProtectedRoute>
         } />
 
-        {/* ── Protected — ADMIN only ───────────────────────────────── */}
+        {/* ── ADMIN only ───────────────────────────────────────────── */}
         <Route path="/admin/dashboard" element={
           <ProtectedRoute allowedRoles={['ADMIN']}>
             <AdminDashboard />
           </ProtectedRoute>
         } />
-
         <Route path="/admin/users" element={
           <ProtectedRoute allowedRoles={['ADMIN']}>
             <UserManagementPage />
+          </ProtectedRoute>
+        } />
+
+        {/* ── MANAGER only ─────────────────────────────────────────── */}
+        <Route path="/manager/dashboard" element={
+          <ProtectedRoute allowedRoles={['MANAGER']}>
+            <ManagerDashboard />
           </ProtectedRoute>
         } />
 

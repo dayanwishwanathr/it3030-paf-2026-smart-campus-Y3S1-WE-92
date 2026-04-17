@@ -1,0 +1,85 @@
+name: SLIIT Orbit CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+
+  # ── Backend: Build + Test ────────────────────────────────────────────────────
+  backend:
+    name: Backend — Build & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Cache Maven dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('orbit-backend/pom.xml') }}
+          restore-keys: ${{ runner.os }}-maven-
+
+      - name: Create application.properties for CI
+        run: |
+          cat > orbit-backend/src/main/resources/application.properties << EOF
+          spring.application.name=orbit-backend
+          server.port=8080
+          spring.data.mongodb.uri=${{ secrets.MONGODB_URI }}
+          app.jwt.secret=${{ secrets.JWT_SECRET }}
+          app.jwt.expiration=86400000
+          spring.security.oauth2.client.registration.google.client-id=${{ secrets.GOOGLE_CLIENT_ID }}
+          spring.security.oauth2.client.registration.google.client-secret=${{ secrets.GOOGLE_CLIENT_SECRET }}
+          spring.security.oauth2.client.registration.google.scope=email,profile
+          spring.security.oauth2.client.registration.google.redirect-uri={baseUrl}/login/oauth2/code/{registrationId}
+          app.frontend.url=http://localhost:5173
+          app.cors.allowed-origins=http://localhost:5173
+          spring.servlet.multipart.max-file-size=10MB
+          spring.servlet.multipart.max-request-size=30MB
+          EOF
+
+      - name: Make mvnw executable
+        run: chmod +x orbit-backend/mvnw
+
+      - name: Build with Maven
+        run: cd orbit-backend && ./mvnw clean package -DskipTests
+
+      - name: Run Tests
+        run: cd orbit-backend && ./mvnw test
+
+  # ── Frontend: Build ──────────────────────────────────────────────────────────
+  frontend:
+    name: Frontend — Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Cache node modules
+        uses: actions/cache@v4
+        with:
+          path: orbit-frontend/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('orbit-frontend/package-lock.json') }}
+          restore-keys: ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        run: cd orbit-frontend && npm install
+
+      - name: Build
+        run: cd orbit-frontend && npm run build
