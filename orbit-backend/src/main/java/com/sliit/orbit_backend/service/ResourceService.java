@@ -7,19 +7,46 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+/**
+ * Service layer for the Facilities & Assets Catalogue (Module A).
+ * Member 1 — Lakshitha
+ */
 @Service
 @RequiredArgsConstructor
 public class ResourceService {
 
     private final ResourceRepository resourceRepository;
 
+    // ── Read ──────────────────────────────────────────────────────────────────
+
     public List<Resource> getAllResources() {
         return resourceRepository.findAll();
     }
 
     public Resource getResourceById(String id) {
-        return resourceRepository.findById(id).orElseThrow(() -> new RuntimeException("Resource not found"));
+        return resourceRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Resource not found with id: " + id));
     }
+
+    /**
+     * Full-text search across name, location and type (case-insensitive regex).
+     */
+    public List<Resource> searchResources(String keyword) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return getAllResources();
+        }
+        return resourceRepository.searchResources(keyword.trim());
+    }
+
+    /**
+     * Filter by any combination of type, location, and availability status.
+     * Null parameters are ignored (i.e. all values match).
+     */
+    public List<Resource> filterResources(String type, String location, String status) {
+        return resourceRepository.filterResources(type, location, status);
+    }
+
+    // ── Write ─────────────────────────────────────────────────────────────────
 
     public Resource createResource(Resource resource) {
         return resourceRepository.save(resource);
@@ -42,12 +69,5 @@ public class ResourceService {
     public void deleteResource(String id) {
         Resource existing = getResourceById(id);
         resourceRepository.delete(existing);
-    }
-
-    public List<Resource> searchResources(String keyword) {
-        if (keyword == null || keyword.trim().isEmpty()) {
-            return getAllResources();
-        }
-        return resourceRepository.searchResources(keyword);
     }
 }
