@@ -11,6 +11,14 @@ import OAuth2Success  from './pages/auth/OAuth2Success'
 import DashboardPage  from './pages/dashboard/DashboardPage'
 import CataloguePage  from './pages/resources/CataloguePage'
 
+// Placeholder for Module B (Member 2)
+const BookingPlaceholder = () => (
+  <div style={{ color: 'white', padding: '50px', textAlign: 'center' }}>
+    <h2>Booking Module</h2>
+    <p>This flow (/bookings/new) will be implemented by Member 2.</p>
+  </div>
+)
+
 // Admin pages
 import AdminDashboard     from './pages/admin/AdminDashboard'
 import UserManagementPage from './pages/admin/UserManagementPage'
@@ -37,6 +45,12 @@ const App = () => {
         <Route path="/resources" element={
           <ProtectedRoute allowedRoles={['USER', 'TECHNICIAN', 'ADMIN', 'MANAGER']}>
             <CataloguePage />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/bookings/new" element={
+          <ProtectedRoute allowedRoles={['USER', 'TECHNICIAN', 'ADMIN', 'MANAGER']}>
+            <BookingPlaceholder />
           </ProtectedRoute>
         } />
 
