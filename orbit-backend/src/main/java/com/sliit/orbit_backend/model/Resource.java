@@ -24,4 +24,15 @@ public class Resource {
 
     private String description;
     private String imageUrl;
+
+    private String availabilityStatus = "ACTIVE"; // e.g. ACTIVE, OUT_OF_SERVICE
+
+    private String availableFrom; // e.g. "08:00"
+    private String availableTo;   // e.g. "18:00"
+
+    @org.springframework.data.annotation.CreatedDate
+    private java.time.Instant createdAt;
+
+    @org.springframework.data.annotation.LastModifiedDate
+    private java.time.Instant updatedAt;
 }
