@@ -20,4 +20,8 @@ public class ResourceService {
     public Resource getResourceById(String id) {
         return resourceRepository.findById(id).orElseThrow(() -> new RuntimeException("Resource not found"));
     }
+
+    public Resource createResource(Resource resource) {
+        return resourceRepository.save(resource);
+    }
 }
