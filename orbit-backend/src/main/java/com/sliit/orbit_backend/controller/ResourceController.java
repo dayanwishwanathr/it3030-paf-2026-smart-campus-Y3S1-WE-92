@@ -38,4 +38,10 @@ public class ResourceController {
     public ResponseEntity<Resource> updateResource(@PathVariable String id, @jakarta.validation.Valid @RequestBody Resource resource) {
         return ResponseEntity.ok(resourceService.updateResource(id, resource));
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteResource(@PathVariable String id) {
+        resourceService.deleteResource(id);
+        return ResponseEntity.noContent().build();
+    }
 }
