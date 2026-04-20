@@ -3,6 +3,9 @@ package com.sliit.orbit_backend.service;
 import com.sliit.orbit_backend.model.Resource;
 import com.sliit.orbit_backend.repository.ResourceRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,6 +19,7 @@ import java.util.List;
 public class ResourceService {
 
     private final ResourceRepository resourceRepository;
+    private final MongoTemplate mongoTemplate;
 
     // ── Read ──────────────────────────────────────────────────────────────────
 
@@ -43,7 +47,17 @@ public class ResourceService {
      * Null parameters are ignored (i.e. all values match).
      */
     public List<Resource> filterResources(String type, String location, String status) {
-        return resourceRepository.filterResources(type, location, status);
+        Query query = new Query();
+        if (type != null && !type.trim().isEmpty()) {
+            query.addCriteria(Criteria.where("type").is(type));
+        }
+        if (location != null && !location.trim().isEmpty()) {
+            query.addCriteria(Criteria.where("location").regex(location, "i"));
+        }
+        if (status != null && !status.trim().isEmpty()) {
+            query.addCriteria(Criteria.where("availabilityStatus").is(status));
+        }
+        return mongoTemplate.find(query, Resource.class);
     }
 
     // ── Write ─────────────────────────────────────────────────────────────────

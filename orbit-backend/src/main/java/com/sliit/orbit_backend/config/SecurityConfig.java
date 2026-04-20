@@ -45,6 +45,7 @@ public class SecurityConfig {
 
                 // ── Public ────────────────────────────────────────────────
                 .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/error").permitAll()
 
                 // ── Resources: public read, MANAGER manages ───────────────
                 .requestMatchers(HttpMethod.GET,    "/api/resources/**").permitAll()

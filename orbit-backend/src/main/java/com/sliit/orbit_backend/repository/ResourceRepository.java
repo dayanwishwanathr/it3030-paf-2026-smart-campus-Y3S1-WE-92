@@ -26,13 +26,4 @@ public interface ResourceRepository extends MongoRepository<Resource, String> {
                     "{ 'type': { $regex: ?0, $options: 'i' } } ] }")
     List<Resource> searchResources(String keyword);
 
-    /**
-     * Compound filter — any parameter can be null to match all values.
-     */
-    @Query("{ $and: [ " +
-           "  { $or: [ { $expr: { $eq: [?0, null] } }, { 'type': ?0 } ] }, " +
-           "  { $or: [ { $expr: { $eq: [?1, null] } }, { 'location': { $regex: ?1, $options: 'i' } } ] }, " +
-           "  { $or: [ { $expr: { $eq: [?2, null] } }, { 'availabilityStatus': ?2 } ] } " +
-           "] }")
-    List<Resource> filterResources(String type, String location, String status);
 }
