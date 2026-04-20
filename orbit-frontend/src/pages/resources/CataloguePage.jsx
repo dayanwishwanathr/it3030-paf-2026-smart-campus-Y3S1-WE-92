@@ -15,7 +15,7 @@ const CataloguePage = () => {
     const fetchResources = async (search = '') => {
         try {
             setLoading(true);
-            const url = search ? `/api/resources?search=${encodeURIComponent(search)}` : '/api/resources';
+            const url = search ? `/resources?search=${encodeURIComponent(search)}` : '/resources';
             const response = await axiosInstance.get(url);
             setResources(response.data);
             setError(null);
