@@ -27,4 +27,15 @@ public class ResourceController {
     public ResponseEntity<Resource> getResourceById(@PathVariable String id) {
         return ResponseEntity.ok(resourceService.getResourceById(id));
     }
+
+    @PostMapping
+    public ResponseEntity<Resource> createResource(@jakarta.validation.Valid @RequestBody Resource resource) {
+        return ResponseEntity.status(org.springframework.http.HttpStatus.CREATED)
+                .body(resourceService.createResource(resource));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Resource> updateResource(@PathVariable String id, @jakarta.validation.Valid @RequestBody Resource resource) {
+        return ResponseEntity.ok(resourceService.updateResource(id, resource));
+    }
 }
