@@ -9,6 +9,7 @@ import OAuth2Success  from './pages/auth/OAuth2Success'
 
 // User pages
 import DashboardPage  from './pages/dashboard/DashboardPage'
+import CataloguePage  from './pages/resources/CataloguePage'
 
 // Admin pages
 import AdminDashboard     from './pages/admin/AdminDashboard'
@@ -31,6 +32,11 @@ const App = () => {
         <Route path="/dashboard" element={
           <ProtectedRoute allowedRoles={['USER', 'TECHNICIAN']}>
             <DashboardPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/resources" element={
+          <ProtectedRoute allowedRoles={['USER', 'TECHNICIAN', 'ADMIN', 'MANAGER']}>
+            <CataloguePage />
           </ProtectedRoute>
         } />
 
