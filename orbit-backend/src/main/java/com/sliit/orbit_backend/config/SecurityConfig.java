@@ -2,7 +2,6 @@ package com.sliit.orbit_backend.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import com.sliit.orbit_backend.security.JwtAuthFilter;
-import com.sliit.orbit_backend.security.OAuth2SuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,7 +30,6 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
-    private final OAuth2SuccessHandler oAuth2SuccessHandler;
 
     @Value("${app.cors.allowed-origins}")
     private String allowedOriginsRaw;
@@ -70,8 +68,12 @@ public class SecurityConfig {
                 // ── Everything else requires login ────────────────────────
                 .anyRequest().authenticated()
             )
-            .oauth2Login(oauth2 -> oauth2
-                .successHandler(oAuth2SuccessHandler)
+            .exceptionHandling(ex -> ex
+                .authenticationEntryPoint((request, response, authException) -> {
+                    response.setStatus(jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED);
+                    response.setContentType("application/json");
+                    response.getWriter().write("{\"error\":\"Unauthorized\"}");
+                })
             )
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
