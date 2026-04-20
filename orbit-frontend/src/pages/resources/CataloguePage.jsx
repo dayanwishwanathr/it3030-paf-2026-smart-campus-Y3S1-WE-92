@@ -6,14 +6,17 @@ const CataloguePage = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
+    const [searchTerm, setSearchTerm] = useState('');
+
     useEffect(() => {
         fetchResources();
     }, []);
 
-    const fetchResources = async () => {
+    const fetchResources = async (search = '') => {
         try {
             setLoading(true);
-            const response = await axiosInstance.get('/api/resources');
+            const url = search ? `/api/resources?search=${encodeURIComponent(search)}` : '/api/resources';
+            const response = await axiosInstance.get(url);
             setResources(response.data);
             setError(null);
         } catch (err) {
@@ -21,6 +24,16 @@ const CataloguePage = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleSearch = (e) => {
+        e.preventDefault();
+        fetchResources(searchTerm);
+    };
+
+    const handleClearSearch = () => {
+        setSearchTerm('');
+        fetchResources('');
     };
 
     return (
