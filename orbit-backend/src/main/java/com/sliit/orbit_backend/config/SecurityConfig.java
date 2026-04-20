@@ -48,10 +48,10 @@ public class SecurityConfig {
 
                 // ── Resources: public read, MANAGER manages ───────────────
                 .requestMatchers(HttpMethod.GET,    "/api/resources/**").permitAll()
-                .requestMatchers(HttpMethod.POST,   "/api/resources/**").hasRole("MANAGER")
-                .requestMatchers(HttpMethod.PUT,    "/api/resources/**").hasRole("MANAGER")
-                .requestMatchers(HttpMethod.PATCH,  "/api/resources/**").hasRole("MANAGER")
-                .requestMatchers(HttpMethod.DELETE, "/api/resources/**").hasRole("MANAGER")
+                .requestMatchers(HttpMethod.POST,   "/api/resources/**").hasAnyRole("MANAGER", "ADMIN")
+                .requestMatchers(HttpMethod.PUT,    "/api/resources/**").hasAnyRole("MANAGER", "ADMIN")
+                .requestMatchers(HttpMethod.PATCH,  "/api/resources/**").hasAnyRole("MANAGER", "ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/resources/**").hasAnyRole("MANAGER", "ADMIN")
 
                 // ── Bookings: MANAGER approves/rejects, USER creates ──────
                 .requestMatchers("/api/bookings/**").hasAnyRole("USER", "MANAGER", "ADMIN")
