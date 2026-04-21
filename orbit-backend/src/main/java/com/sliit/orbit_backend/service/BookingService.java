@@ -136,6 +136,71 @@ public class BookingService {
         }
     }
 
+    public BookingResponse approve(String id, String notes, String actorRole) {
+        Booking booking = findById(id);
+        if (booking.getStatus() != BookingStatus.PENDING) {
+            throw new IllegalStateException("Only PENDING bookings can be approved");
+        }
+        booking.setStatus(BookingStatus.APPROVED);
+        booking.setNotes(notes);
+        Booking saved = bookingRepository.save(booking);
+
+        notificationService.createNotification(
+                booking.getUserId(),
+                "BOOKING_APPROVED",
+                "Your booking for " + dateString(booking) + " was approved.",
+                booking.getId()
+        );
+        return toResponse(saved);
+    }
+
+    public BookingResponse reject(String id, String notes, String actorRole) {
+        Booking booking = findById(id);
+        if (booking.getStatus() != BookingStatus.PENDING) {
+            throw new IllegalStateException("Only PENDING bookings can be rejected");
+        }
+        booking.setStatus(BookingStatus.REJECTED);
+        booking.setNotes(notes);
+        Booking saved = bookingRepository.save(booking);
+
+        notificationService.createNotification(
+                booking.getUserId(),
+                "BOOKING_REJECTED",
+                "Your booking for " + dateString(booking) + " was rejected. Reason: " + notes,
+                booking.getId()
+        );
+        return toResponse(saved);
+    }
+
+    public BookingResponse cancel(String id, String callerUserId, String callerRole) {
+        Booking booking = findById(id);
+        boolean isOwner = booking.getUserId().equals(callerUserId);
+        boolean isAdmin = "ADMIN".equals(callerRole);
+
+        if (!isOwner && !isAdmin) {
+            throw new RuntimeException("Access denied: cannot cancel this booking");
+        }
+        if (booking.getStatus() != BookingStatus.APPROVED && booking.getStatus() != BookingStatus.PENDING) {
+            throw new IllegalStateException("Only PENDING or APPROVED bookings can be cancelled");
+        }
+
+        booking.setStatus(BookingStatus.CANCELLED);
+        Booking saved = bookingRepository.save(booking);
+        return toResponse(saved);
+    }
+
+    public void deleteBooking(String id, String actorRole) {
+        if (!"ADMIN".equals(actorRole)) {
+            throw new RuntimeException("Access denied: only ADMIN can delete bookings");
+        }
+        Booking booking = findById(id);
+        bookingRepository.delete(booking);
+    }
+
+    private String dateString(Booking b) {
+        return b.getDate().toString() + " at " + b.getStartTime().toString();
+    }
+
     // ── Internal helpers ──────────────────────────────────────────────────────
 
     Booking findById(String id) {
