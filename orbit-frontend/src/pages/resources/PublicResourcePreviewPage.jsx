@@ -12,6 +12,7 @@ const PublicResourcePreviewPage = () => {
   const [bookings, setBookings] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [filterMode, setFilterMode] = useState('ALL') // 'ALL', 'TODAY', 'TOMORROW'
 
   useEffect(() => {
     fetchData()
@@ -28,10 +29,17 @@ const PublicResourcePreviewPage = () => {
       
       setResource(resRes.data)
       
-      // Filter out past bookings to only show current/future
+      // Normalize Java Date/Time arrays to strings
+      const normalizeDateTime = (b) => ({
+        ...b,
+        date: Array.isArray(b.date) ? b.date.map(x => String(x).padStart(2, '0')).join('-') : b.date,
+        startTime: Array.isArray(b.startTime) ? b.startTime.map(x => String(x).padStart(2, '0')).join(':') : b.startTime,
+        endTime: Array.isArray(b.endTime) ? b.endTime.map(x => String(x).padStart(2, '0')).join(':') : b.endTime
+      })
+      
       const now = new Date()
       const bookingsArray = Array.isArray(bookRes.data) ? bookRes.data : []
-      const upcoming = bookingsArray.filter(b => {
+      const upcoming = bookingsArray.map(normalizeDateTime).filter(b => {
         if (!b.date || !b.endTime) return false;
         try {
           const bookingDateTime = new Date(`${b.date}T${b.endTime}`)
@@ -88,8 +96,19 @@ const PublicResourcePreviewPage = () => {
 
   // Format time (e.g. 14:00 -> 2:00 PM)
   const formatTime = (timeStr) => {
-    return new Date(`1970-01-01T${timeStr}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric' })
+    // If the timeStr is missing seconds, pad it for Firefox/Safari safety
+    const safeTimeStr = timeStr.split(':').length === 2 ? `${timeStr}:00` : timeStr
+    return new Date(`1970-01-01T${safeTimeStr}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric' })
   }
+
+  // Derived filtered bookings
+  const displayedBookings = bookings.filter(b => {
+    if (filterMode === 'ALL') return true;
+    const label = formatDate(b.date);
+    if (filterMode === 'TODAY' && label === 'Today') return true;
+    if (filterMode === 'TOMORROW' && label === 'Tomorrow') return true;
+    return false;
+  })
 
   return (
     <div style={{ minHeight: '100vh', background: '#050508', fontFamily: "'Inter', sans-serif" }}>
@@ -158,19 +177,46 @@ const PublicResourcePreviewPage = () => {
         </div>
 
         {/* Schedule */}
-        <h3 style={{ fontSize: 16, fontWeight: 700, color: '#f1f5f9', display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} style={{ width: 18, height: 18, color: '#3b82f6' }}><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-          Upcoming Bookings
-        </h3>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+          <h3 style={{ fontSize: 16, fontWeight: 700, color: '#f1f5f9', display: 'flex', alignItems: 'center', gap: 8, margin: 0 }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} style={{ width: 18, height: 18, color: '#3b82f6' }}><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Upcoming Bookings
+          </h3>
+        </div>
+
+        {/* Filter Bar */}
+        {bookings.length > 0 && (
+          <div style={{ display: 'flex', gap: 8, marginBottom: 20, overflowX: 'auto', paddingBottom: 4 }}>
+            {['ALL', 'TODAY', 'TOMORROW'].map(mode => (
+              <button 
+                key={mode}
+                onClick={() => setFilterMode(mode)}
+                style={{
+                  padding: '6px 14px', borderRadius: 999, fontSize: 12, fontWeight: 700,
+                  background: filterMode === mode ? 'rgba(59,130,246,0.15)' : 'rgba(255,255,255,0.05)',
+                  color: filterMode === mode ? '#60a5fa' : '#94a3b8',
+                  border: `1px solid ${filterMode === mode ? 'rgba(59,130,246,0.4)' : 'transparent'}`,
+                  whiteSpace: 'nowrap', transition: 'all 0.2s'
+                }}
+              >
+                {mode === 'ALL' ? 'All Upcoming' : mode.charAt(0) + mode.slice(1).toLowerCase()}
+              </button>
+            ))}
+          </div>
+        )}
         
         {bookings.length === 0 ? (
           <div style={{ padding: 24, borderRadius: 12, border: '1px dashed rgba(255,255,255,0.14)', textAlign: 'center' }}>
             <span style={{ fontSize: 28, display: 'block', marginBottom: 12 }}>✨</span>
             <p style={{ color: '#94a3b8', fontSize: 14, margin: 0 }}>This resource is completely free for the foreseeable future. You can book it right now!</p>
           </div>
+        ) : displayedBookings.length === 0 ? (
+          <div style={{ padding: 24, borderRadius: 12, border: '1px dashed rgba(255,255,255,0.14)', textAlign: 'center' }}>
+            <p style={{ color: '#94a3b8', fontSize: 14, margin: 0 }}>No bookings match this filter.</p>
+          </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {bookings.map((booking) => (
+            {displayedBookings.map((booking) => (
               <div key={booking.id} style={{ 
                 display: 'flex', alignItems: 'stretch', 
                 background: 'rgba(255,255,255,0.03)', borderRadius: 12, border: '1px solid rgba(255,255,255,0.06)', overflow: 'hidden'
