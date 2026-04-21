@@ -1,8 +1,208 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import Layout from '../../components/layout/Layout'
 import { bookingApi } from '../../api/bookingApi'
 import axiosInstance from '../../api/axiosInstance'
+
+// ── Shared Styling (Matching Catalogue) ───────────────────────────────────────
+const TYPE_LABELS = {
+  ALL:          'All Types',
+  LECTURE_HALL: 'Lecture Hall',
+  LAB:          'Lab',
+  MEETING_ROOM: 'Meeting Room',
+  EQUIPMENT:    'Equipment',
+}
+
+const S = {
+  card: {
+    background:   '#131929',
+    border:       '1px solid #1e2d45',
+    borderRadius: '10px',
+    transition:   'border-color 0.2s',
+  },
+  input: {
+    width:           '100%',
+    background:      '#0c1526',
+    border:          '1px solid #1e2d45',
+    borderRadius:    '8px',
+    color:           '#f1f5f9',
+    fontSize:        '13px',
+    padding:         '8px 12px',
+    fontFamily:      'inherit',
+    outline:         'none',
+    transition:      'border-color 0.2s',
+  },
+  label: {
+    fontSize:      '11px',
+    fontWeight:    '500',
+    color:         '#64748b',
+    marginBottom:  '5px',
+    display:       'block'
+  },
+  divider: {
+    height:     '1px',
+    background: '#1e2d45',
+    margin:     '0',
+  },
+  btnPrimary: {
+    padding:       '9px',
+    borderRadius:  '7px',
+    fontSize:      '13px',
+    fontWeight:    '600',
+    background:    'linear-gradient(135deg, #06b6d4, #3b82f6)',
+    border:        'none',
+    color:         '#fff',
+    cursor:        'pointer',
+    width:         '100%',
+    textAlign:     'center'
+  }
+}
+
+// ── StatusBadge ───────────────────────────────────────────────────────────────
+const StatusBadge = ({ status }) => {
+  const active = status === 'ACTIVE'
+  return (
+    <span style={{
+      display:       'inline-flex',
+      alignItems:    'center',
+      gap:           '5px',
+      padding:       '2px 8px',
+      borderRadius:  '4px',
+      fontSize:      '11px',
+      fontWeight:    '500',
+      background:    active ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)',
+      border:        active ? '1px solid rgba(16,185,129,0.3)' : '1px solid rgba(239,68,68,0.3)',
+      color:         active ? '#34d399' : '#f87171',
+      flexShrink:    0,
+    }}>
+      <span style={{
+        width: '6px', height: '6px', borderRadius: '50%',
+        background: active ? '#10b981' : '#ef4444',
+        flexShrink: 0,
+      }} />
+      {active ? 'Active' : 'Offline'}
+    </span>
+  )
+}
+
+// ── TypeTag ───────────────────────────────────────────────────────────────────
+const TypeTag = ({ type }) => (
+  <span style={{
+    display:      'inline-block',
+    padding:      '2px 8px',
+    borderRadius: '4px',
+    fontSize:     '11px',
+    fontWeight:   '500',
+    background:   '#1a2540',
+    border:       '1px solid #243050',
+    color:        '#94a3b8',
+  }}>
+    {TYPE_LABELS[type] ?? type}
+  </span>
+)
+
+// ── ResourceSelectCard ────────────────────────────────────────────────────────
+const ResourceSelectCard = ({ resource, onSelect }) => {
+  const [hovered, setHovered] = useState(false)
+  const isActive = resource.availabilityStatus === 'ACTIVE'
+
+  return (
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        ...S.card,
+        background:  hovered ? '#151e32' : '#131929',
+        borderColor: hovered ? '#06b6d4' : '#1e2d45',
+        display:     'flex',
+        flexDirection: 'column',
+        overflow:    'hidden',
+        textAlign:   'left',
+        opacity:     isActive ? 1 : 0.6,
+        padding: 0,
+        width: '100%',
+        transform:   hovered ? 'translateY(-2px)' : 'none',
+        transition:  'all 0.2s',
+        boxShadow:   hovered ? '0 4px 20px rgba(6,182,212,0.1)' : 'none'
+      }}
+    >
+      <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', flex: 1, gap: '12px' }}>
+        
+        {/* Top Header: Title & Type */}
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={{ fontSize: '15px', fontWeight: '700', color: hovered ? '#22d3ee' : '#f1f5f9', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', transition: 'color 0.2s' }}>
+              {resource.name}
+            </p>
+            <p style={{ fontSize: '12px', color: '#64748b', margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <svg style={{ display: 'inline', width: '12px', height: '12px', marginRight: '4px', verticalAlign: '-2px' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.243-4.243a8 8 0 1111.314 0z"/><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+              {resource.location}
+            </p>
+          </div>
+          <TypeTag type={resource.type} />
+        </div>
+
+        {/* Capacity & Time Info Box */}
+        <div style={{ 
+          background: 'rgba(255,255,255,0.02)', 
+          border: '1px solid rgba(255,255,255,0.05)', 
+          borderRadius: '6px', 
+          padding: '10px',
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: '8px',
+          marginTop: '4px'
+        }}>
+          <div>
+            <p style={{ fontSize: '10px', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 2px', fontWeight: '600' }}>Capacity</p>
+            <p style={{ fontSize: '12px', color: '#cbd5e1', margin: 0, fontWeight: '500' }}>{resource.capacity} seats</p>
+          </div>
+          <div>
+            <p style={{ fontSize: '10px', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 2px', fontWeight: '600' }}>Hours</p>
+            <p style={{ fontSize: '12px', color: '#cbd5e1', margin: 0, fontWeight: '500' }}>{resource.availableFrom} - {resource.availableTo}</p>
+          </div>
+        </div>
+
+        <div style={{ flex: 1 }} />
+
+        {/* Action Button */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            if (isActive) onSelect(resource.id);
+          }}
+          disabled={!isActive}
+          style={{
+            display:       'flex',
+            alignItems:    'center',
+            justifyContent:'center',
+            gap:           '6px',
+            width:         '100%',
+            padding:       '8px 0',
+            borderRadius:  '6px',
+            fontSize:      '13px',
+            fontWeight:    '600',
+            border:        isActive ? '1px solid rgba(6,182,212,0.4)' : '1px solid #1e2d45',
+            cursor:        isActive ? 'pointer' : 'not-allowed',
+            background:    isActive 
+                             ? (hovered ? 'linear-gradient(135deg, #06b6d4, #3b82f6)' : 'rgba(6,182,212,0.1)')
+                             : '#1a2540',
+            color:         isActive ? (hovered ? '#fff' : '#22d3ee') : '#64748b',
+            transition:    'all 0.2s',
+          }}
+        >
+          {isActive ? (
+            <>
+              Select Resource
+              <svg style={{ width: '14px', height: '14px', transform: hovered ? 'translateX(2px)' : 'none', transition: 'transform 0.2s' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+            </>
+          ) : 'Unavailable'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
 
 const BookResourcePage = () => {
   const navigate = useNavigate()
@@ -10,7 +210,7 @@ const BookResourcePage = () => {
   const initialResourceId = searchParams.get('resourceId')
 
   const [resources, setResources] = useState([])
-  const [loadingResources, setLoadingResources] = useState(!initialResourceId)
+  const [loadingResources, setLoadingResources] = useState(true)
   
   const [formData, setFormData] = useState({
     resourceId: initialResourceId || '',
@@ -24,20 +224,17 @@ const BookResourcePage = () => {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
 
-  // Fetch resources if no specific resource is selected yet
   useEffect(() => {
-    if (!initialResourceId) {
-      axiosInstance.get('/resources')
-        .then(res => {
-          setResources(res.data)
-          setLoadingResources(false)
-        })
-        .catch(err => {
-          console.error(err)
-          setLoadingResources(false)
-        })
-    }
-  }, [initialResourceId])
+    axiosInstance.get('/resources')
+      .then(res => {
+        setResources(res.data)
+        setLoadingResources(false)
+      })
+      .catch(err => {
+        console.error(err)
+        setLoadingResources(false)
+      })
+  }, [])
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -47,6 +244,22 @@ const BookResourcePage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+
+    if (selectedResource) {
+      if (formData.startTime >= formData.endTime) {
+        setError('Start time must be earlier than the end time.')
+        return
+      }
+      
+      const availStart = selectedResource.availableFrom || '00:00'
+      const availEnd = selectedResource.availableTo || '23:59'
+
+      if (formData.startTime < availStart || formData.endTime > availEnd) {
+        setError(`This resource is only available between ${availStart} and ${availEnd}.`)
+        return
+      }
+    }
+
     setSubmitting(true)
 
     try {
@@ -59,126 +272,162 @@ const BookResourcePage = () => {
     }
   }
 
+  const selectedResource = resources.find(r => r.id === formData.resourceId)
   const step1 = !formData.resourceId
 
   return (
     <Layout>
-      <div className="max-w-3xl mx-auto py-8">
-        <h1 className="text-2xl font-bold text-white mb-6">Book a Resource</h1>
+      <div style={{ padding: '0 0 32px 0' }}>
+        
+        {/* Header */}
+        <div style={{ marginBottom: '24px' }}>
+          <h1 style={{ fontSize: '20px', fontWeight: '600', color: '#f1f5f9', margin: '0 0 4px' }}>
+            Book a Resource
+          </h1>
+          <p style={{ fontSize: '13px', color: '#64748b', margin: 0 }}>
+            {step1 ? 'Select a campus facility or equipment to book.' : 'Fill in the booking details for your selected resource.'}
+          </p>
+        </div>
 
         {error && (
-          <div className="mb-6 p-4 rounded-xl" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#fca5a5' }}>
+          <div style={{ padding: '12px', borderRadius: '8px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#fca5a5', fontSize: '13px', marginBottom: '20px' }}>
             {error}
           </div>
         )}
 
         {step1 ? (
-          <div className="space-y-4">
-            <p className="text-slate-400 mb-4">Please select a resource to book:</p>
+          <div>
             {loadingResources ? (
-              <p className="text-slate-500">Loading resources...</p>
+              <p style={{ fontSize: '13px', color: '#475569' }}>Loading resources...</p>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div style={{
+                display:             'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))',
+                gap:                 '14px',
+              }}>
                 {resources.map(res => (
-                  <button
-                    key={res.id}
-                    onClick={() => setFormData(prev => ({ ...prev, resourceId: res.id }))}
-                    className="glass-card-btn p-5 text-left flex flex-col gap-2"
-                  >
-                    <span className="text-white font-semibold">{res.name}</span>
-                    <span className="text-xs text-slate-400">{res.type} • {res.location} • Capacity: {res.capacity}</span>
-                  </button>
+                  <ResourceSelectCard 
+                    key={res.id} 
+                    resource={res} 
+                    onSelect={(id) => setFormData(prev => ({ ...prev, resourceId: id }))} 
+                  />
                 ))}
               </div>
             )}
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="glass-card p-6 space-y-5">
-            {!initialResourceId && (
-              <div className="flex justify-between items-center mb-6">
-                <span className="text-sm text-cyan-400 font-semibold">Resource Selected</span>
+          <div style={{ ...S.card, padding: '24px' }}>
+            
+            {/* Selected Resource Overview */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
+              <div>
+                <span style={{ fontSize: '11px', fontWeight: '600', color: '#06b6d4', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Resource Selected</span>
+                {selectedResource && (
+                  <h2 style={{ fontSize: '16px', fontWeight: '600', color: '#f1f5f9', margin: '4px 0 0' }}>
+                    {selectedResource.name}
+                  </h2>
+                )}
+              </div>
+              {!initialResourceId && (
                 <button 
                   type="button" 
                   onClick={() => setFormData(prev => ({ ...prev, resourceId: '' }))}
-                  className="text-xs text-slate-400 hover:text-white"
+                  style={{
+                    background: 'transparent',
+                    border: '1px solid #1e2d45',
+                    color: '#94a3b8',
+                    padding: '4px 10px',
+                    borderRadius: '6px',
+                    fontSize: '12px',
+                    cursor: 'pointer'
+                  }}
                 >
                   Change
                 </button>
-              </div>
-            )}
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Date</label>
-              <input
-                type="date"
-                name="date"
-                required
-                value={formData.date}
-                onChange={handleChange}
-                className="input-glass"
-              />
+              )}
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div style={S.divider} />
+
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '20px' }}>
+              
               <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Start Time</label>
+                <label style={S.label}>Date *</label>
                 <input
-                  type="time"
-                  name="startTime"
+                  type="date"
+                  name="date"
                   required
-                  value={formData.startTime}
+                  value={formData.date}
                   onChange={handleChange}
-                  className="input-glass"
+                  style={S.input}
                 />
               </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div>
+                  <label style={S.label}>Start Time *</label>
+                  <input
+                    type="time"
+                    name="startTime"
+                    required
+                    value={formData.startTime}
+                    onChange={handleChange}
+                    style={S.input}
+                  />
+                </div>
+                <div>
+                  <label style={S.label}>End Time *</label>
+                  <input
+                    type="time"
+                    name="endTime"
+                    required
+                    value={formData.endTime}
+                    onChange={handleChange}
+                    style={S.input}
+                  />
+                </div>
+              </div>
+
               <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">End Time</label>
+                <label style={S.label}>Purpose *</label>
                 <input
-                  type="time"
-                  name="endTime"
+                  type="text"
+                  name="purpose"
                   required
-                  value={formData.endTime}
+                  placeholder="e.g., Team meeting, Project presentation"
+                  value={formData.purpose}
                   onChange={handleChange}
-                  className="input-glass"
+                  style={S.input}
                 />
               </div>
-            </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Purpose</label>
-              <input
-                type="text"
-                name="purpose"
-                required
-                placeholder="e.g., Team meeting, Project presentation"
-                value={formData.purpose}
-                onChange={handleChange}
-                className="input-glass"
-              />
-            </div>
+              <div>
+                <label style={S.label}>Expected Attendees *</label>
+                <input
+                  type="number"
+                  name="attendees"
+                  min="1"
+                  max={selectedResource?.capacity || undefined}
+                  required
+                  placeholder="Number of people"
+                  value={formData.attendees}
+                  onChange={handleChange}
+                  style={S.input}
+                />
+              </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Expected Attendees</label>
-              <input
-                type="number"
-                name="attendees"
-                min="1"
-                required
-                value={formData.attendees}
-                onChange={handleChange}
-                className="input-glass"
-              />
-            </div>
+              <div style={{ marginTop: '8px' }}>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  style={{ ...S.btnPrimary, opacity: submitting ? 0.6 : 1 }}
+                >
+                  {submitting ? 'Submitting...' : 'Submit Booking Request'}
+                </button>
+              </div>
+            </form>
 
-            <button
-              type="submit"
-              disabled={submitting}
-              className="btn-neon w-full py-3 mt-4"
-            >
-              <div className="btn-shimmer" />
-              {submitting ? 'Submitting...' : 'Submit Booking Request'}
-            </button>
-          </form>
+          </div>
         )}
       </div>
     </Layout>
