@@ -8,6 +8,16 @@ import axiosInstance from '../../api/axiosInstance'
 const CLOUDINARY_CLOUD  = 'dkztweyhk'
 const CLOUDINARY_PRESET = 'orbit_uploads'
 
+// ── Helpers ───────────────────────────────────────────────────────────────────
+const formatTime = (timeStr) => {
+  if (!timeStr) return '';
+  const [h, m] = timeStr.split(':');
+  let hour = parseInt(h, 10);
+  const ampm = hour >= 12 ? 'p.m' : 'a.m';
+  hour = hour % 12 || 12; // convert 0 to 12
+  return `${hour}:${m} ${ampm}`;
+}
+
 // ── Constants ─────────────────────────────────────────────────────────────────
 const TYPES    = ['ALL', 'LECTURE_HALL', 'LAB', 'MEETING_ROOM', 'EQUIPMENT']
 const STATUSES = ['ALL', 'ACTIVE', 'OUT_OF_SERVICE']
@@ -204,7 +214,7 @@ const ResourceCard = ({ resource, canManage, onBook, onEdit, onDelete }) => {
             <span style={{ color: '#94a3b8', fontWeight: '500' }}>{resource.capacity}</span>
             {' '}seats
           </span>
-          <span>{resource.availableFrom} – {resource.availableTo}</span>
+          <span>{formatTime(resource.availableFrom)} – {formatTime(resource.availableTo)}</span>
         </div>
 
         {/* Divider */}

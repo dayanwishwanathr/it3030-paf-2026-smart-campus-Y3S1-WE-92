@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import Layout from '../../components/layout/Layout'
 import { bookingApi } from '../../api/bookingApi'
@@ -129,25 +129,37 @@ const DashboardPage = () => {
         <h2 className="text-xl font-bold text-white mb-4">Quick Actions</h2>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <ActionCard
-            icon={<BookIcon />}
+            icon={
+              <svg style={{ color: `rgb(6,182,212)` }} className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            }
             title="Book a Resource"
-            description="Reserve campus rooms, labs, and equipment 24⁄7"
-            onClick={() => navigate('/bookings/new')}
-            accentColor={cfg.color}
+            desc="Reserve campus rooms, labs, and equipment 24/7"
+            to="/bookings/new"
+            accentRgb="6,182,212"
           />
           <ActionCard
-            icon={<TicketIcon />}
+            icon={
+              <svg style={{ color: `rgb(245,158,11)` }} className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
+              </svg>
+            }
             title="Report an Issue"
-            description="Submit a maintenance or incident ticket"
-            onClick={() => navigate('/tickets')}
-            accentColor={cfg.color}
+            desc="Submit a maintenance or incident ticket"
+            to="/tickets"
+            accentRgb="245,158,11"
           />
           <ActionCard
-            icon={<BuildingIcon />}
+            icon={
+              <svg style={{ color: `rgb(139,92,246)` }} className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+              </svg>
+            }
             title="Browse Resources"
-            description="Explore all available campus facilities"
-            onClick={() => navigate('/resources')}
-            accentColor={cfg.color}
+            desc="Explore all available campus facilities"
+            to="/resources"
+            accentRgb="139,92,246"
           />
         </div>
       </div>

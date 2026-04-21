@@ -154,7 +154,7 @@ public class BookingService {
         for (Booking existing : approvedBookings) {
             // Overlap condition: existingStart < requestEnd AND existingEnd > requestStart
             if (existing.getStartTime().isBefore(endTime) && existing.getEndTime().isAfter(startTime)) {
-                throw new IllegalArgumentException("The resource is already booked during this time window.");
+                throw new IllegalArgumentException("Time Slot is already booked.");
             }
         }
     }

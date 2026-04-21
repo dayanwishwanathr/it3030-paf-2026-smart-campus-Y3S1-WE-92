@@ -4,6 +4,16 @@ import Layout from '../../components/layout/Layout'
 import { bookingApi } from '../../api/bookingApi'
 import axiosInstance from '../../api/axiosInstance'
 
+// ── Helpers ───────────────────────────────────────────────────────────────────
+const formatTime = (timeStr) => {
+  if (!timeStr) return '';
+  const [h, m] = timeStr.split(':');
+  let hour = parseInt(h, 10);
+  const ampm = hour >= 12 ? 'p.m' : 'a.m';
+  hour = hour % 12 || 12; // convert 0 to 12
+  return `${hour}:${m} ${ampm}`;
+}
+
 // ── Shared Styling (Matching Catalogue) ───────────────────────────────────────
 const TYPE_LABELS = {
   ALL:          'All Types',
@@ -159,7 +169,7 @@ const ResourceSelectCard = ({ resource, onSelect }) => {
           </div>
           <div>
             <p style={{ fontSize: '10px', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 2px', fontWeight: '600' }}>Hours</p>
-            <p style={{ fontSize: '12px', color: '#cbd5e1', margin: 0, fontWeight: '500' }}>{resource.availableFrom} - {resource.availableTo}</p>
+            <p style={{ fontSize: '12px', color: '#cbd5e1', margin: 0, fontWeight: '500' }}>{formatTime(resource.availableFrom)} - {formatTime(resource.availableTo)}</p>
           </div>
         </div>
 
@@ -218,7 +228,7 @@ const BookResourcePage = () => {
     startTime: '',
     endTime: '',
     purpose: '',
-    attendees: 1
+    attendees: ''
   })
   
   const [submitting, setSubmitting] = useState(false)
@@ -255,7 +265,18 @@ const BookResourcePage = () => {
       const availEnd = selectedResource.availableTo || '23:59'
 
       if (formData.startTime < availStart || formData.endTime > availEnd) {
-        setError(`This resource is only available between ${availStart} and ${availEnd}.`)
+        setError(`This resource is only available between ${formatTime(availStart)} and ${formatTime(availEnd)}.`)
+        return
+      }
+
+      const attendees = parseInt(formData.attendees, 10)
+      if (isNaN(attendees) || attendees < 1) {
+        setError('Expected attendees must be at least 1.')
+        return
+      }
+
+      if (selectedResource.capacity && attendees > selectedResource.capacity) {
+        setError(`Expected attendees cannot exceed the maximum capacity of ${selectedResource.capacity}.`)
         return
       }
     }
@@ -275,8 +296,30 @@ const BookResourcePage = () => {
   const selectedResource = resources.find(r => r.id === formData.resourceId)
   const step1 = !formData.resourceId
 
+  const handleReset = () => {
+    setFormData({
+      resourceId: '',
+      date: '',
+      startTime: '',
+      endTime: '',
+      purpose: '',
+      attendees: ''
+    });
+    setError('');
+  };
+
   return (
     <Layout>
+      <style>{`
+        input[type="date"]::-webkit-calendar-picker-indicator,
+        input[type="time"]::-webkit-calendar-picker-indicator {
+          border: 1px solid rgba(255, 255, 255, 0.7);
+          border-radius: 4px;
+          padding: 2px;
+          cursor: pointer;
+          filter: invert(1); /* Makes the black icon white for dark mode */
+        }
+      `}</style>
       <div style={{ padding: '0 0 32px 0' }}>
         
         {/* Header */}
@@ -331,18 +374,21 @@ const BookResourcePage = () => {
               {!initialResourceId && (
                 <button 
                   type="button" 
-                  onClick={() => setFormData(prev => ({ ...prev, resourceId: '' }))}
+                  onClick={handleReset}
                   style={{
                     background: 'transparent',
-                    border: '1px solid #1e2d45',
-                    color: '#94a3b8',
+                    border: '1px solid rgba(239, 68, 68, 0.4)',
+                    color: '#f87171',
                     padding: '4px 10px',
                     borderRadius: '6px',
                     fontSize: '12px',
-                    cursor: 'pointer'
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
                   }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'; e.currentTarget.style.borderColor = '#ef4444'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.4)'; }}
                 >
-                  Change
+                  Reset Form
                 </button>
               )}
             </div>
