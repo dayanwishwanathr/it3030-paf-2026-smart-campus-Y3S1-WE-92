@@ -38,12 +38,14 @@ const TopBar = () => {
 
   return (
     <header
-      className="sticky top-0 z-30 flex items-center justify-between px-6"
       style={{
-        height: '56px',
+        position: 'sticky', top: 0, zIndex: 30,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '0 32px', // Add horizontal padding explicitly
+        height: '64px',
         background: 'rgba(5,5,8,0.88)',
         backdropFilter: 'blur(20px)',
-        borderBottom: '1px solid rgba(255,255,255,0.07)',
+        borderBottom: '1px solid #1e2d45',
       }}
     >
       {/* ── Left: page title + date ── */}
