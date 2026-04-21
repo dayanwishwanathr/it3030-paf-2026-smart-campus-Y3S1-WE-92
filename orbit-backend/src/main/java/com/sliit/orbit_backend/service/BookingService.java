@@ -91,6 +91,41 @@ public class BookingService {
         return bookingRepository.countByUserIdAndStatus(userId, status);
     }
 
+    // ── Write ─────────────────────────────────────────────────────────────────
+
+    /**
+     * Creates a new PENDING booking after validating the time range.
+     * Conflict detection is added in the next step.
+     */
+    public BookingResponse createBooking(BookingRequest request, String userId) {
+        java.time.LocalDate date      = java.time.LocalDate.parse(request.getDate());
+        java.time.LocalTime startTime = java.time.LocalTime.parse(request.getStartTime());
+        java.time.LocalTime endTime   = java.time.LocalTime.parse(request.getEndTime());
+
+        if (!endTime.isAfter(startTime)) {
+            throw new IllegalArgumentException("End time must be after start time");
+        }
+
+        // Verify resource exists
+        resourceRepository.findById(request.getResourceId())
+                .orElseThrow(() -> new RuntimeException(
+                        "Resource not found with id: " + request.getResourceId()));
+
+        Booking booking = Booking.builder()
+                .resourceId(request.getResourceId())
+                .userId(userId)
+                .date(date)
+                .startTime(startTime)
+                .endTime(endTime)
+                .purpose(request.getPurpose())
+                .attendees(request.getAttendees())
+                .status(BookingStatus.PENDING)
+                .build();
+
+        Booking saved = bookingRepository.save(booking);
+        return toResponse(saved);
+    }
+
     // ── Internal helpers ──────────────────────────────────────────────────────
 
     Booking findById(String id) {
