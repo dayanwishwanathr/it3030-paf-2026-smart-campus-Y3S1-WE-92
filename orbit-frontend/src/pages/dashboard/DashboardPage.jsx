@@ -1,6 +1,8 @@
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import Layout from '../../components/layout/Layout'
+import { bookingApi } from '../../api/bookingApi'
 
 // ── Stat chip ────────────────────────────────────────────────────────────────
 const StatChip = ({ label, value, color, border, glow }) => (
@@ -74,6 +76,18 @@ const DashboardPage = () => {
   const firstName = user?.name?.split(' ')[0] ?? 'there'
   const isTech    = role === 'TECHNICIAN'
 
+  const [stats, setStats] = useState({ total: '—', approved: '—', pending: '—' })
+
+  useEffect(() => {
+    // Fetch live booking stats
+    bookingApi.getMyBookings().then(data => {
+      const total = data.length
+      const approved = data.filter(b => b.status === 'APPROVED').length
+      const pending = data.filter(b => b.status === 'PENDING').length
+      setStats({ total, approved, pending })
+    }).catch(err => console.error(err))
+  }, [])
+
   return (
     <Layout>
       {/* ── Hero banner ── */}
@@ -101,10 +115,10 @@ const DashboardPage = () => {
 
           {/* Right: stat chips */}
           <div className="flex flex-wrap gap-3">
-            <StatChip label="Bookings" value="—" color="6,182,212"/>
+            <StatChip label="Bookings" value={stats.total} color="6,182,212"/>
             <StatChip label="Tickets"  value="—" color="245,158,11"/>
-            <StatChip label="Approved" value="—" color="16,185,129"/>
-            <StatChip label="Pending"  value="—" color="168,85,247"/>
+            <StatChip label="Approved" value={stats.approved} color="16,185,129"/>
+            <StatChip label="Pending"  value={stats.pending} color="168,85,247"/>
           </div>
         </div>
       </div>
