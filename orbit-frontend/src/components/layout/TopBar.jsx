@@ -22,7 +22,7 @@ const ROLE_AVATAR = {
   USER:       'role-user-avatar',
 }
 
-const TopBar = () => {
+const TopBar = ({ onMenuClick }) => {
   const location = useLocation()
   const { user } = useAuth()
 
@@ -50,6 +50,15 @@ const TopBar = () => {
     >
       {/* ── Left: page title + date ── */}
       <div className="flex items-center gap-3 min-w-0">
+        <button 
+          onClick={onMenuClick}
+          className="show-on-mobile"
+          style={{ background: 'transparent', border: 'none', color: '#f1f5f9', cursor: 'pointer', padding: '4px', marginRight: '4px' }}
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} width={24} height={24}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
         <div className="flex items-center gap-2">
           <span className="text-base leading-none select-none">{icon}</span>
           <h1 className="text-[15px] font-bold truncate" style={{ color: '#f1f5f9' }}>

@@ -23,12 +23,16 @@ import UserManagementPage from './pages/admin/UserManagementPage'
 // Manager pages
 import ManagerDashboard from './pages/manager/ManagerDashboard'
 
+// Public pages
+import PublicResourcePreviewPage from './pages/resources/PublicResourcePreviewPage'
+
 const App = () => {
   return (
     <AuthProvider>
       <Routes>
 
         {/* ── Public ──────────────────────────────────────────────── */}
+        <Route path="/resources/preview/:id" element={<PublicResourcePreviewPage />} />
         <Route path="/login"          element={<LoginPage />} />
         <Route path="/register"       element={<RegisterPage />} />
         <Route path="/oauth2/success" element={<OAuth2Success />} />

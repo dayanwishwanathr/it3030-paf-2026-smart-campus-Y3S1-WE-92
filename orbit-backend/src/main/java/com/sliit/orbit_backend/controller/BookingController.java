@@ -53,6 +53,12 @@ public class BookingController {
         return ResponseEntity.ok(bookingService.getBookingById(id, userId, role));
     }
 
+    @GetMapping("/public/resource/{resourceId}")
+    public ResponseEntity<List<BookingResponse>> getPublicBookingsByResource(@PathVariable String resourceId) {
+        // Only return APPROVED bookings publicly
+        return ResponseEntity.ok(bookingService.getAllBookings(BookingStatus.APPROVED, resourceId, null));
+    }
+
     // ── Write Endpoints ───────────────────────────────────────────────────────
 
     @PostMapping
