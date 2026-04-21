@@ -111,6 +111,9 @@ public class BookingService {
                 .orElseThrow(() -> new RuntimeException(
                         "Resource not found with id: " + request.getResourceId()));
 
+        // Check for conflicting bookings
+        checkConflicts(request.getResourceId(), date, startTime, endTime);
+
         Booking booking = Booking.builder()
                 .resourceId(request.getResourceId())
                 .userId(userId)
@@ -124,6 +127,13 @@ public class BookingService {
 
         Booking saved = bookingRepository.save(booking);
         return toResponse(saved);
+    }
+
+    private void checkConflicts(String resourceId, java.time.LocalDate date, java.time.LocalTime startTime, java.time.LocalTime endTime) {
+        List<Booking> conflicts = bookingRepository.findConflictingBookings(resourceId, date, startTime, endTime);
+        if (!conflicts.isEmpty()) {
+            throw new IllegalArgumentException("The resource is already booked during this time window.");
+        }
     }
 
     // ── Internal helpers ──────────────────────────────────────────────────────
