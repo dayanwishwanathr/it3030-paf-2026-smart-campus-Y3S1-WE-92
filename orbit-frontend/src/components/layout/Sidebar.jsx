@@ -2,12 +2,12 @@ import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import OrbitLogo from '../common/OrbitLogo'
 
-// ── Role tokens ─────────────────────────────────────────────────────────────
-const ROLE = {
-  USER:       { badge: 'role-user-badge',    active: 'role-user-active',    hover: 'role-user-hover',    dot: 'role-user-dot',    avatar: 'role-user-avatar'    },
-  ADMIN:      { badge: 'role-admin-badge',   active: 'role-admin-active',   hover: 'role-admin-hover',   dot: 'role-admin-dot',   avatar: 'role-admin-avatar'   },
-  MANAGER:    { badge: 'role-manager-badge', active: 'role-manager-active', hover: 'role-manager-hover', dot: 'role-manager-dot', avatar: 'role-manager-avatar' },
-  TECHNICIAN: { badge: 'role-tech-badge',    active: 'role-tech-active',    hover: 'role-tech-hover',    dot: 'role-tech-dot',    avatar: 'role-tech-avatar'    },
+// ── Role colors ─────────────────────────────────────────────────────────────
+const ROLE_COLORS = {
+  USER:       { hex: '#06b6d4', bg: 'rgba(6,182,212,0.1)',   border: 'rgba(6,182,212,0.25)' },
+  ADMIN:      { hex: '#a855f7', bg: 'rgba(168,85,247,0.1)',  border: 'rgba(168,85,247,0.25)' },
+  MANAGER:    { hex: '#10b981', bg: 'rgba(16,185,129,0.1)',  border: 'rgba(16,185,129,0.25)' },
+  TECHNICIAN: { hex: '#f59e0b', bg: 'rgba(245,158,11,0.1)',  border: 'rgba(245,158,11,0.25)' },
 }
 
 // ── Nav links per role ───────────────────────────────────────────────────────
@@ -40,108 +40,128 @@ const Sidebar = () => {
   const { user, logout } = useAuth()
   const location = useLocation()
 
-  const role    = user?.role ?? 'USER'
-  const tokens  = ROLE[role]   ?? ROLE.USER
-  const links   = NAV[role]    ?? NAV.USER
+  const role     = user?.role ?? 'USER'
+  const rColor   = ROLE_COLORS[role] ?? ROLE_COLORS.USER
+  const links    = NAV[role]    ?? NAV.USER
   const initials = user?.name?.charAt(0).toUpperCase() ?? '?'
 
   return (
     <aside
-      className="fixed left-0 top-0 h-full flex flex-col z-40"
       style={{
+        position: 'fixed', left: 0, top: 0, height: '100%',
         width: '240px',
-        background: 'rgba(5,5,8,0.95)',
-        backdropFilter: 'blur(20px)',
-        borderRight: '1px solid rgba(255,255,255,0.07)',
+        background: '#0a1120',
+        borderRight: '1px solid #1e2d45',
+        display: 'flex', flexDirection: 'column',
+        zIndex: 40,
       }}
     >
       {/* ── Logo area ── */}
-      <div className="flex items-center gap-2.5 px-5 py-[18px]" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-        <OrbitLogo size={38} color="white" />
-        <div className="flex items-baseline leading-none">
-          <span className="text-[17px] font-black tracking-tight" style={{ color: '#f59e0b' }}>SLIIT</span>
-          <span className="text-[17px] font-black tracking-tight text-white">&nbsp;Orbit</span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '18px 20px', borderBottom: '1px solid #1e2d45' }}>
+        <OrbitLogo size={32} color="white" />
+        <div style={{ display: 'flex', alignItems: 'baseline', lineHeight: 1 }}>
+          <span style={{ fontSize: '18px', fontWeight: '800', letterSpacing: '-0.02em', color: '#f59e0b' }}>SLIIT</span>
+          <span style={{ fontSize: '18px', fontWeight: '800', letterSpacing: '-0.02em', color: '#f1f5f9' }}>&nbsp;Orbit</span>
         </div>
       </div>
 
       {/* ── Role badge ── */}
-      <div className="px-4 pt-4 pb-1">
-        <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest ${tokens.badge}`}>
-          <span className={`h-1.5 w-1.5 rounded-full anim-dot-pulse ${tokens.dot}`} />
+      <div style={{ padding: '16px 16px 4px' }}>
+        <span style={{
+          display: 'inline-flex', alignItems: 'center', gap: '6px',
+          padding: '4px 10px', borderRadius: '6px',
+          fontSize: '10px', fontWeight: '700', letterSpacing: '0.05em',
+          textTransform: 'uppercase',
+          background: rColor.bg,
+          color: rColor.hex,
+          border: `1px solid ${rColor.border}`
+        }}>
+          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: rColor.hex }} />
           {role}
         </span>
       </div>
 
       {/* ── Navigation ── */}
-      <nav className="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto">
-        <p className="px-3 pt-1 pb-2 text-[10px] font-semibold uppercase tracking-widest" style={{ color: '#334155' }}>
+      <nav style={{ flex: 1, padding: '12px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        <p style={{ padding: '8px 12px', fontSize: '10px', fontWeight: '600', letterSpacing: '0.08em', textTransform: 'uppercase', color: '#475569', margin: 0 }}>
           Navigation
         </p>
 
-        {links.map(({ to, label, icon }, idx) => {
+        {links.map(({ to, label, icon }) => {
           const isActive = location.pathname === to || (to !== '/dashboard' && location.pathname.startsWith(to + '/'))
           return (
             <Link
               key={to}
               to={to}
-              className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150 relative ${
-                isActive
-                  ? `nav-item-active ${tokens.active}`
-                  : `text-slate-500 ${tokens.hover}`
-              }`}
-              style={{ animationDelay: `${idx * 40}ms` }}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '12px',
+                padding: '10px 12px',
+                borderRadius: '8px',
+                fontSize: '13px', fontWeight: '500',
+                textDecoration: 'none',
+                background: isActive ? 'rgba(6,182,212,0.1)' : 'transparent',
+                color: isActive ? '#22d3ee' : '#94a3b8',
+                transition: 'all 0.15s',
+              }}
+              onMouseEnter={e => { if (!isActive) { e.currentTarget.style.color = '#f1f5f9'; e.currentTarget.style.background = 'rgba(255,255,255,0.03)' } }}
+              onMouseLeave={e => { if (!isActive) { e.currentTarget.style.color = '#94a3b8'; e.currentTarget.style.background = 'transparent' } }}
             >
-              <span className="h-4 w-4 flex-shrink-0 transition-transform duration-150 group-hover:scale-110">
+              <span style={{ display: 'flex', width: '18px', height: '18px', opacity: isActive ? 1 : 0.7 }}>
                 {icon}
               </span>
               <span>{label}</span>
-              {isActive && (
-                <span className={`ml-auto h-1.5 w-1.5 rounded-full ${tokens.dot}`} />
-              )}
             </Link>
           )
         })}
       </nav>
 
       {/* ── User section ── */}
-      <div className="p-3" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
-        {/* User info row */}
-        <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl" style={{ background: 'rgba(255,255,255,0.03)' }}>
+      <div style={{ padding: '12px', borderTop: '1px solid #1e2d45' }}>
+        <div style={{ 
+          display: 'flex', alignItems: 'center', gap: '12px', 
+          padding: '10px', borderRadius: '8px', 
+          background: '#131929', border: '1px solid #1e2d45' 
+        }}>
           {user?.profilePicture ? (
             <img
               src={user.profilePicture}
               alt={user.name}
-              className="h-8 w-8 rounded-full object-cover flex-shrink-0"
-              style={{ boxShadow: '0 0 0 2px rgba(6,182,212,0.4)' }}
+              style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }}
             />
           ) : (
-            <div
-              className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0 ${tokens.avatar}`}
-            >
+            <div style={{
+              width: '32px', height: '32px', borderRadius: '50%',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: '13px', fontWeight: '600', color: '#fff',
+              background: rColor.hex,
+            }}>
               {initials}
             </div>
           )}
-          <div className="min-w-0 flex-1">
-            <p className="text-[13px] font-semibold truncate" style={{ color: '#e2e8f0' }}>{user?.name}</p>
-            <p className="text-[11px] truncate"  style={{ color: '#475569'  }}>{user?.email}</p>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={{ fontSize: '13px', fontWeight: '600', color: '#f1f5f9', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {user?.name || 'Loading...'}
+            </p>
+            <p style={{ fontSize: '11px', color: '#64748b', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {user?.email || '...'}
+            </p>
           </div>
         </div>
 
         {/* Sign out */}
         <button
           onClick={logout}
-          className="mt-1.5 flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium transition-all duration-150"
-          style={{ color: '#475569' }}
-          onMouseEnter={e => {
-            e.currentTarget.style.color = '#f87171'
-            e.currentTarget.style.background = 'rgba(239,68,68,0.08)'
+          style={{
+            display: 'flex', alignItems: 'center', gap: '10px', width: '100%',
+            padding: '10px 12px', marginTop: '8px', borderRadius: '8px',
+            fontSize: '13px', fontWeight: '500',
+            background: 'transparent', border: 'none', cursor: 'pointer',
+            color: '#64748b', transition: 'all 0.15s',
           }}
-          onMouseLeave={e => {
-            e.currentTarget.style.color = '#475569'
-            e.currentTarget.style.background = 'transparent'
-          }}
+          onMouseEnter={e => { e.currentTarget.style.color = '#f87171'; e.currentTarget.style.background = 'rgba(239,68,68,0.08)' }}
+          onMouseLeave={e => { e.currentTarget.style.color = '#64748b'; e.currentTarget.style.background = 'transparent' }}
         >
-          <SignOutIcon />
+          <span style={{ width: '16px', height: '16px' }}><SignOutIcon /></span>
           Sign out
         </button>
       </div>

@@ -24,10 +24,10 @@ const FeaturedCard = ({ icon, title, desc, to, accentRgb, stagger }) => (
       {/* Icon orb */}
       <div className="h-12 w-12 rounded-2xl flex items-center justify-center mb-5"
         style={{
-          background:   `rgba(${accentRgb},0.12)`,
-          border:       `1px solid rgba(${accentRgb},0.3)`,
-          boxShadow:    `0 0 20px rgba(${accentRgb},0.12)`,
-          transition:   'all 0.2s ease',
+          background: `rgba(${accentRgb},0.12)`,
+          border: `1px solid rgba(${accentRgb},0.3)`,
+          boxShadow: `0 0 20px rgba(${accentRgb},0.12)`,
+          transition: 'all 0.2s ease',
         }}
       >
         {icon}
@@ -38,7 +38,7 @@ const FeaturedCard = ({ icon, title, desc, to, accentRgb, stagger }) => (
     <div className="mt-6 flex items-center gap-2 text-[13px] font-semibold" style={{ color: `rgb(${accentRgb})` }}>
       <span>Get started</span>
       <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
       </svg>
     </div>
   </Link>
@@ -56,25 +56,26 @@ const ActionCard = ({ icon, title, desc, to, accentRgb, stagger }) => (
       <p className="text-[11px] mt-0.5 truncate" style={{ color: '#475569' }}>{desc}</p>
     </div>
     <svg className="h-4 w-4 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: `rgb(${accentRgb})` }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
     </svg>
   </Link>
 )
 
 // ── Role config ───────────────────────────────────────────────────────────────
 const ROLE_CFG = {
-  USER:       { heroClass: 'hero-cyan',    rgb: '6,182,212',   label: '👤 USER'       },
-  TECHNICIAN: { heroClass: 'hero-cyan',    rgb: '245,158,11',  label: '🔧 TECHNICIAN' },
-  ADMIN:      { heroClass: 'hero-purple',  rgb: '168,85,247',  label: '⚡ ADMIN'      },
-  MANAGER:    { heroClass: 'hero-emerald', rgb: '16,185,129',  label: '🏗️ MANAGER'   },
+  USER: { color: 'cyan', label: '👤 USER' },
+  TECHNICIAN: { color: 'amber', label: '🔧 TECHNICIAN' },
+  ADMIN: { color: 'purple', label: '⚡ ADMIN' },
+  MANAGER: { color: 'green', label: '🏗️ MANAGER' },
 }
 
 const DashboardPage = () => {
+  const navigate = useNavigate()
   const { user } = useAuth()
-  const role      = user?.role ?? 'USER'
-  const cfg       = ROLE_CFG[role] ?? ROLE_CFG.USER
+  const role = user?.role ?? 'USER'
+  const cfg = ROLE_CFG[role] ?? ROLE_CFG.USER
   const firstName = user?.name?.split(' ')[0] ?? 'there'
-  const isTech    = role === 'TECHNICIAN'
+  const isTech = role === 'TECHNICIAN'
 
   const [stats, setStats] = useState({ total: '—', approved: '—', pending: '—' })
 
@@ -93,10 +94,10 @@ const DashboardPage = () => {
       {/* ── Hero banner ── */}
       <div className={`relative overflow-hidden rounded-2xl p-6 mb-6 ${cfg.heroClass}`}>
         {/* Dot grid texture */}
-        <div className="absolute inset-0 dot-grid opacity-40"/>
+        <div className="absolute inset-0 dot-grid opacity-40" />
         {/* Right glow blob */}
         <div className="absolute -right-10 -top-10 w-48 h-48 rounded-full"
-          style={{ background: `radial-gradient(circle, rgba(${cfg.rgb},0.2) 0%, transparent 70%)` }}/>
+          style={{ background: `radial-gradient(circle, rgba(${cfg.rgb},0.2) 0%, transparent 70%)` }} />
 
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
           {/* Left: greeting */}
@@ -108,63 +109,50 @@ const DashboardPage = () => {
             <p className="text-[13px] mt-1" style={{ color: '#64748b' }}>Here's what's happening on campus today.</p>
             <span className="inline-flex items-center gap-1.5 mt-3 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-widest"
               style={{ background: `rgba(${cfg.rgb},0.12)`, border: `1px solid rgba(${cfg.rgb},0.25)`, color: `rgb(${cfg.rgb})` }}>
-              <span className="w-1.5 h-1.5 rounded-full" style={{ background: `rgb(${cfg.rgb})`, boxShadow: `0 0 6px rgb(${cfg.rgb})` }}/>
+              <span className="w-1.5 h-1.5 rounded-full" style={{ background: `rgb(${cfg.rgb})`, boxShadow: `0 0 6px rgb(${cfg.rgb})` }} />
               {cfg.label}
             </span>
           </div>
 
           {/* Right: stat chips */}
           <div className="flex flex-wrap gap-3">
-            <StatChip label="Bookings" value={stats.total} color="6,182,212"/>
-            <StatChip label="Tickets"  value="—" color="245,158,11"/>
-            <StatChip label="Approved" value={stats.approved} color="16,185,129"/>
-            <StatChip label="Pending"  value={stats.pending} color="168,85,247"/>
+            <StatChip label="Bookings" value={stats.total} color="6,182,212" />
+            <StatChip label="Tickets" value="—" color="245,158,11" />
+            <StatChip label="Approved" value={stats.approved} color="16,185,129" />
+            <StatChip label="Pending" value={stats.pending} color="168,85,247" />
           </div>
         </div>
       </div>
 
-      {/* ── Quick Actions ── */}
-      <p className="text-[10px] font-bold uppercase tracking-widest mb-4" style={{ color: '#334155' }}>Quick Actions</p>
-
-      {isTech ? (
-        // Technician: 3-col layout
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <FeaturedCard
-            icon={<TicketSVG rgb="245,158,11"/>} title="My Tickets"
-            desc="View and manage all assigned maintenance and support tickets across campus."
-            to="/tickets" accentRgb="245,158,11" stagger="card-stagger-1"
-          />
-          <div className="flex flex-col gap-4">
-            <ActionCard icon={<BuildingSVG rgb="6,182,212"/>}  title="Browse Resources"  desc="View campus facilities"     to="/resources"   accentRgb="6,182,212"  stagger="card-stagger-2"/>
-            <ActionCard icon={<PlusSVG     rgb="16,185,129"/>}  title="Report an Issue"   desc="Submit a new ticket"       to="/tickets/new" accentRgb="16,185,129" stagger="card-stagger-3"/>
-          </div>
-        </div>
-      ) : (
-        // USER: featured left + 2×2 right
+      {/* ── Quick Actions Section ── */}
+      <div className="mt-8">
+        <h2 className="text-xl font-bold text-white mb-4">Quick Actions</h2>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <FeaturedCard
-            icon={<CalSVG rgb="6,182,212"/>} title="Book a Resource"
-            desc="Reserve a campus room, lab, lecture hall, or equipment for your next session. Available 24 ⁄ 7."
-            to="/bookings/new" accentRgb="6,182,212" stagger="card-stagger-1"
+          <ActionCard
+            icon={<BookIcon />}
+            title="Book a Resource"
+            description="Reserve campus rooms, labs, and equipment 24⁄7"
+            onClick={() => navigate('/bookings/new')}
+            accentColor={cfg.color}
           />
-          <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <ActionCard icon={<TicketSVG  rgb="245,158,11"/>}  title="Report an Issue"   desc="Submit a maintenance or incident ticket"   to="/tickets/new"  accentRgb="245,158,11"  stagger="card-stagger-2"/>
-            <ActionCard icon={<ListSVG    rgb="59,130,246"/>}   title="My Bookings"       desc="View and manage your reservations"         to="/bookings"     accentRgb="59,130,246"  stagger="card-stagger-3"/>
-            <ActionCard icon={<ClipSVG   rgb="168,85,247"/>}   title="My Tickets"        desc="Track your reported incidents"             to="/tickets"      accentRgb="168,85,247"  stagger="card-stagger-4"/>
-            <ActionCard icon={<BuildingSVG rgb="16,185,129"/>}  title="Browse Resources"  desc="Explore available campus facilities"       to="/resources"    accentRgb="16,185,129"  stagger="card-stagger-5"/>
-          </div>
+          <ActionCard
+            icon={<TicketIcon />}
+            title="Report an Issue"
+            description="Submit a maintenance or incident ticket"
+            onClick={() => navigate('/tickets')}
+            accentColor={cfg.color}
+          />
+          <ActionCard
+            icon={<BuildingIcon />}
+            title="Browse Resources"
+            description="Explore all available campus facilities"
+            onClick={() => navigate('/resources')}
+            accentColor={cfg.color}
+          />
         </div>
-      )}
+      </div>
     </Layout>
   )
 }
-
-// ── SVG icons ────────────────────────────────────────────────────────────────
-const CalSVG      = ({ rgb }) => <svg className="h-6 w-6" style={{ color: `rgb(${rgb})` }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-const TicketSVG   = ({ rgb }) => <svg className="h-6 w-6" style={{ color: `rgb(${rgb})` }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/></svg>
-const ListSVG     = ({ rgb }) => <svg className="h-5 w-5" style={{ color: `rgb(${rgb})` }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-const ClipSVG     = ({ rgb }) => <svg className="h-5 w-5" style={{ color: `rgb(${rgb})` }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-const BuildingSVG = ({ rgb }) => <svg className="h-5 w-5" style={{ color: `rgb(${rgb})` }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-const PlusSVG     = ({ rgb }) => <svg className="h-5 w-5" style={{ color: `rgb(${rgb})` }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/></svg>
 
 export default DashboardPage

@@ -33,6 +33,7 @@ public class Resource {
     private String description;
     private String imageUrl;
 
+    @Builder.Default
     private String availabilityStatus = "ACTIVE"; // e.g. ACTIVE, OUT_OF_SERVICE
 
     private String availableFrom; // e.g. "08:00"

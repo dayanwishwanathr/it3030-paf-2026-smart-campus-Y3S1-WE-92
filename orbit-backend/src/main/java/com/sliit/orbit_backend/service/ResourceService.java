@@ -1,14 +1,17 @@
 package com.sliit.orbit_backend.service;
 
-import com.sliit.orbit_backend.model.Resource;
-import com.sliit.orbit_backend.repository.ResourceRepository;
-import lombok.RequiredArgsConstructor;
+import java.util.List;
+import java.util.Objects;
+
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import com.sliit.orbit_backend.model.Resource;
+import com.sliit.orbit_backend.repository.ResourceRepository;
+
+import lombok.RequiredArgsConstructor;
 
 /**
  * Service layer for the Facilities & Assets Catalogue (Module A).
@@ -28,7 +31,7 @@ public class ResourceService {
     }
 
     public Resource getResourceById(String id) {
-        return resourceRepository.findById(id)
+        return resourceRepository.findById(Objects.requireNonNull(id, "Resource id must not be null"))
                 .orElseThrow(() -> new RuntimeException("Resource not found with id: " + id));
     }
 
@@ -63,7 +66,7 @@ public class ResourceService {
     // ── Write ─────────────────────────────────────────────────────────────────
 
     public Resource createResource(Resource resource) {
-        return resourceRepository.save(resource);
+        return resourceRepository.save(Objects.requireNonNull(resource, "Resource must not be null"));
     }
 
     public Resource updateResource(String id, Resource updatedResource) {
@@ -82,6 +85,6 @@ public class ResourceService {
 
     public void deleteResource(String id) {
         Resource existing = getResourceById(id);
-        resourceRepository.delete(existing);
+        resourceRepository.delete(Objects.requireNonNull(existing, "Resource must not be null"));
     }
 }
