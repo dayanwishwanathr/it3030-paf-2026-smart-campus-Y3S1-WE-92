@@ -27,4 +27,7 @@ export const bookingApi = {
 
   deleteBooking: (id) =>
     axiosInstance.delete(`/bookings/${id}`).then(res => res.data),
+
+  getAvailability: (resourceId, date) =>
+    axiosInstance.get('/bookings/availability', { params: { resourceId, date } }).then(res => res.data),
 }

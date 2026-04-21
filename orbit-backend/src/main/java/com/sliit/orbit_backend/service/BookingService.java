@@ -68,6 +68,20 @@ public class BookingService {
     }
 
     /**
+     * Returns ALL bookings (any status except CANCELLED) for a resource on a specific date.
+     * Used by the Availability Viewer — visible to all authenticated users.
+     */
+    public List<BookingResponse> getAvailabilityForDate(String resourceId, String date) {
+        LocalDate parsedDate = LocalDate.parse(date);
+        List<Booking> bookings = bookingRepository.findByResourceIdAndDate(resourceId, parsedDate);
+        // Exclude CANCELLED bookings — those slots are free again
+        return bookings.stream()
+                .filter(b -> b.getStatus() != BookingStatus.CANCELLED)
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    /**
      * Returns a single booking by ID.
      * Owners can access their own; ADMIN/MANAGER can access any.
      */
