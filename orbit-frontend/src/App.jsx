@@ -11,13 +11,10 @@ import OAuth2Success  from './pages/auth/OAuth2Success'
 import DashboardPage  from './pages/dashboard/DashboardPage'
 import CataloguePage  from './pages/resources/CataloguePage'
 
-// Placeholder for Module B (Member 2)
-const BookingPlaceholder = () => (
-  <div style={{ color: 'white', padding: '50px', textAlign: 'center' }}>
-    <h2>Booking Module</h2>
-    <p>This flow (/bookings/new) will be implemented by Member 2.</p>
-  </div>
-)
+// Booking pages
+import BookResourcePage   from './pages/bookings/BookResourcePage'
+import MyBookingsPage     from './pages/bookings/MyBookingsPage'
+import ManageBookingsPage from './pages/bookings/ManageBookingsPage'
 
 // Admin pages
 import AdminDashboard     from './pages/admin/AdminDashboard'
@@ -50,7 +47,13 @@ const App = () => {
 
         <Route path="/bookings/new" element={
           <ProtectedRoute allowedRoles={['USER', 'TECHNICIAN', 'ADMIN', 'MANAGER']}>
-            <BookingPlaceholder />
+            <BookResourcePage />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/bookings" element={
+          <ProtectedRoute allowedRoles={['USER', 'TECHNICIAN', 'ADMIN', 'MANAGER']}>
+            <MyBookingsPage />
           </ProtectedRoute>
         } />
 
@@ -63,6 +66,13 @@ const App = () => {
         <Route path="/admin/users" element={
           <ProtectedRoute allowedRoles={['ADMIN']}>
             <UserManagementPage />
+          </ProtectedRoute>
+        } />
+
+        {/* ── ADMIN & MANAGER ──────────────────────────────────────── */}
+        <Route path="/bookings/manage" element={
+          <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER']}>
+            <ManageBookingsPage />
           </ProtectedRoute>
         } />
 
