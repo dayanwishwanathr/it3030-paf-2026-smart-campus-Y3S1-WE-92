@@ -126,6 +126,25 @@ public class BookingService {
                 .build();
 
         Booking saved = bookingRepository.save(booking);
+
+        // Notify admins and managers
+        List<com.sliit.orbit_backend.model.User> adminsAndManagers = userRepository.findByRoleIn(
+                java.util.Arrays.asList(
+                        com.sliit.orbit_backend.model.enums.Role.ADMIN,
+                        com.sliit.orbit_backend.model.enums.Role.MANAGER
+                )
+        );
+
+        String message = "New booking request from user ID " + userId + " for resource on " + date.toString();
+        for (com.sliit.orbit_backend.model.User adminOrManager : adminsAndManagers) {
+            notificationService.createNotification(
+                    adminOrManager.getId(),
+                    "NEW_BOOKING_REQUEST",
+                    message,
+                    saved.getId()
+            );
+        }
+
         return toResponse(saved);
     }
 

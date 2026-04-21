@@ -118,7 +118,7 @@ const ManagerDashboard = () => {
               icon={<CalSVG/>}
               title="Booking Requests"
               desc="Review pending bookings, approve or reject with reason"
-              to="/bookings" accentRgb="6,182,212" stagger="card-stagger-2"
+              to="/bookings/manage" accentRgb="6,182,212" stagger="card-stagger-2"
             />
           </div>
         </div>

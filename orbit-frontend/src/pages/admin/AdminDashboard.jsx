@@ -94,7 +94,7 @@ const AdminDashboard = () => {
         />
         <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
           <ModuleCard icon={<BuildingSVG/>} title="Resources & Facilities" desc="Oversee all campus rooms, labs, equipment" to="/resources" accentRgb="6,182,212"  stagger="card-stagger-2"/>
-          <ModuleCard icon={<CalSVG/>}      title="All Bookings"          desc="Full visibility of every booking request"    to="/bookings" accentRgb="16,185,129" stagger="card-stagger-3"/>
+          <ModuleCard icon={<CalSVG/>}      title="All Bookings"          desc="Full visibility of every booking request"    to="/bookings/manage" accentRgb="16,185,129" stagger="card-stagger-3"/>
           <ModuleCard icon={<TicketSVG/>}   title="Incident Tickets"      desc="Monitor all maintenance and support issues"  to="/tickets"  accentRgb="245,158,11" stagger="card-stagger-4"/>
         </div>
       </div>
