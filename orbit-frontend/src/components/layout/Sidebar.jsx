@@ -36,7 +36,7 @@ const NAV = {
   ],
 }
 
-const Sidebar = () => {
+const Sidebar = ({ isOpen, onClose }) => {
   const { user, logout } = useAuth()
   const location = useLocation()
 
@@ -47,6 +47,7 @@ const Sidebar = () => {
 
   return (
     <aside
+      className={`sidebar-mobile ${isOpen ? 'open' : ''}`}
       style={{
         position: 'fixed', left: 0, top: 0, height: '100%',
         width: '240px',
@@ -57,12 +58,25 @@ const Sidebar = () => {
       }}
     >
       {/* ── Logo area ── */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '18px 20px', borderBottom: '1px solid #1e2d45' }}>
-        <OrbitLogo size={32} color="white" />
-        <div style={{ display: 'flex', alignItems: 'baseline', lineHeight: 1 }}>
-          <span style={{ fontSize: '18px', fontWeight: '800', letterSpacing: '-0.02em', color: '#f59e0b' }}>SLIIT</span>
-          <span style={{ fontSize: '18px', fontWeight: '800', letterSpacing: '-0.02em', color: '#f1f5f9' }}>&nbsp;Orbit</span>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 20px', borderBottom: '1px solid #1e2d45' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <OrbitLogo size={32} color="white" />
+          <div style={{ display: 'flex', alignItems: 'baseline', lineHeight: 1 }}>
+            <span style={{ fontSize: '18px', fontWeight: '800', letterSpacing: '-0.02em', color: '#f59e0b' }}>SLIIT</span>
+            <span style={{ fontSize: '18px', fontWeight: '800', letterSpacing: '-0.02em', color: '#f1f5f9' }}>&nbsp;Orbit</span>
+          </div>
         </div>
+        
+        {/* Mobile Close Button */}
+        <button 
+          onClick={onClose}
+          className="show-on-mobile"
+          style={{ background: 'transparent', border: 'none', color: '#64748b', cursor: 'pointer', padding: '4px' }}
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} width={20} height={20}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
       </div>
 
       {/* ── Role badge ── */}
@@ -93,6 +107,7 @@ const Sidebar = () => {
             <Link
               key={to}
               to={to}
+              onClick={() => onClose?.()}
               style={{
                 display: 'flex', alignItems: 'center', gap: '12px',
                 padding: '10px 12px',

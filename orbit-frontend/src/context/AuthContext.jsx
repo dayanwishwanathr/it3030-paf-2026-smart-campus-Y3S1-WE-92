@@ -38,8 +38,13 @@ export const AuthProvider = ({ children }) => {
     try {
       const { data } = await axiosInstance.get('/auth/me')
       setUser(data)
-      // Redirect based on role
-      if (data.role === 'ADMIN') {
+      // Redirect based on role or explicit returnUrl
+      const params = new URLSearchParams(window.location.search)
+      const returnUrl = params.get('returnUrl')
+      
+      if (returnUrl) {
+        navigate(returnUrl)
+      } else if (data.role === 'ADMIN') {
         navigate('/admin/dashboard')
       } else if (data.role === 'MANAGER') {
         navigate('/manager/dashboard')
