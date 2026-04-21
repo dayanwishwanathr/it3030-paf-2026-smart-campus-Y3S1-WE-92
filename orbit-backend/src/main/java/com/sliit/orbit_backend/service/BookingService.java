@@ -160,6 +160,10 @@ public class BookingService {
         if (booking.getStatus() != BookingStatus.PENDING) {
             throw new IllegalStateException("Only PENDING bookings can be approved");
         }
+        
+        // Ensure no other approved booking already occupies this time slot
+        checkConflicts(booking.getResourceId(), booking.getDate(), booking.getStartTime(), booking.getEndTime());
+
         booking.setStatus(BookingStatus.APPROVED);
         booking.setNotes(notes);
         Booking saved = bookingRepository.save(booking);

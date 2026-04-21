@@ -38,13 +38,13 @@ public interface BookingRepository extends MongoRepository<Booking, String> {
 
     // ── Conflict detection ────────────────────────────────────────────────────
     /**
-     * Returns any PENDING or APPROVED booking for the same resource on the same date
+     * Returns any APPROVED booking for the same resource on the same date
      * whose time window overlaps with [requestStart, requestEnd).
      *
      * Overlap condition: existingStart < requestEnd  AND  existingEnd > requestStart
      */
     @Query("{ 'resourceId': ?0, 'date': ?1, " +
-           "  'status': { $in: ['PENDING', 'APPROVED'] }, " +
+           "  'status': 'APPROVED', " +
            "  'startTime': { $lt: ?3 }, " +
            "  'endTime':   { $gt: ?2 } }")
     List<Booking> findConflictingBookings(String resourceId,
