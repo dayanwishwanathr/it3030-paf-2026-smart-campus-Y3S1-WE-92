@@ -53,6 +53,57 @@ public class BookingController {
         return ResponseEntity.ok(bookingService.getBookingById(id, userId, role));
     }
 
+    // ── Write Endpoints ───────────────────────────────────────────────────────
+
+    @PostMapping
+    public ResponseEntity<BookingResponse> createBooking(
+            @jakarta.validation.Valid @RequestBody com.sliit.orbit_backend.dto.request.BookingRequest request,
+            Authentication authentication) {
+        String userId = getUserId(authentication);
+        return ResponseEntity.status(org.springframework.http.HttpStatus.CREATED)
+                .body(bookingService.createBooking(request, userId));
+    }
+
+    @PatchMapping("/{id}/approve")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    public ResponseEntity<BookingResponse> approveBooking(
+            @PathVariable String id,
+            @RequestBody(required = false) com.sliit.orbit_backend.dto.request.StatusUpdateRequest request,
+            Authentication authentication) {
+        String role = getRole(authentication);
+        String notes = request != null ? request.getNotes() : null;
+        return ResponseEntity.ok(bookingService.approve(id, notes, role));
+    }
+
+    @PatchMapping("/{id}/reject")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    public ResponseEntity<BookingResponse> rejectBooking(
+            @PathVariable String id,
+            @jakarta.validation.Valid @RequestBody com.sliit.orbit_backend.dto.request.StatusUpdateRequest request,
+            Authentication authentication) {
+        String role = getRole(authentication);
+        return ResponseEntity.ok(bookingService.reject(id, request.getNotes(), role));
+    }
+
+    @PatchMapping("/{id}/cancel")
+    public ResponseEntity<BookingResponse> cancelBooking(
+            @PathVariable String id,
+            Authentication authentication) {
+        String userId = getUserId(authentication);
+        String role = getRole(authentication);
+        return ResponseEntity.ok(bookingService.cancel(id, userId, role));
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> deleteBooking(
+            @PathVariable String id,
+            Authentication authentication) {
+        String role = getRole(authentication);
+        bookingService.deleteBooking(id, role);
+        return ResponseEntity.noContent().build();
+    }
+
     // ── Internal Helpers ──────────────────────────────────────────────────────
 
     private String getUserId(Authentication authentication) {
