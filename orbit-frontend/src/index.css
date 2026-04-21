@@ -194,31 +194,91 @@ body {
 .input-glass.error        { border-color: rgba(239,68,68,0.5); background: rgba(239,68,68,0.04); }
 .input-glass.error:focus  { box-shadow: 0 0 0 3px rgba(239,68,68,0.12); }
 
-/* ─── Neon Button ────────────────────────────────────────────────────────────── */
-.btn-neon {
-  position:      relative;
-  overflow:      hidden;
-  background:    linear-gradient(135deg, #06b6d4, #3b82f6);
-  border:        none;
+/* ─── Global Buttons ────────────────────────────────────────────────────────── */
+.btn-primary {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--cyan), var(--blue));
+  color: white;
+  padding: 10px 20px;
   border-radius: 12px;
-  color:         white;
-  font-weight:   600;
-  font-family:   var(--font-sans);
-  cursor:        pointer;
-  transition:    all 0.2s ease;
-  box-shadow:    0 4px 20px rgba(6,182,212,0.28);
+  font-weight: 700;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 14px rgba(6, 182, 212, 0.25);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
-.btn-neon:hover {
-  box-shadow: 0 6px 32px rgba(6,182,212,0.45);
-  transform:  translateY(-1px);
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(6, 182, 212, 0.4);
 }
-.btn-neon:active { transform: translateY(0); }
-.btn-neon:disabled {
-  opacity: 0.5;
-  cursor:  not-allowed;
-  transform: none;
+.btn-primary:active { transform: translateY(0); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+  padding: 9px 19px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: white;
 }
 
+.btn-ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  padding: 9px 19px;
+  border-radius: 12px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.btn-ghost:hover {
+  color: white;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.btn-danger {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: #fca5a5;
+  padding: 9px 19px;
+  border-radius: 12px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.btn-danger:hover {
+  background: #ef4444;
+  color: white;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+/* Backwards compatibility for .btn-neon */
+.btn-neon { @extend .btn-primary; }
 .btn-neon .btn-shimmer {
   position:   absolute;
   inset:      0;
@@ -230,11 +290,11 @@ body {
 
 /* ─── Mesh / Hero Gradients ─────────────────────────────────────────────────── */
 .mesh-bg {
-  background:
-    radial-gradient(ellipse at 20% 50%, rgba(6,182,212,0.13) 0%, transparent 55%),
-    radial-gradient(ellipse at 80% 20%, rgba(59,130,246,0.11) 0%, transparent 55%),
-    radial-gradient(ellipse at 50% 90%, rgba(168,85,247,0.07) 0%, transparent 50%),
-    #050508;
+  background: 
+    radial-gradient(circle at 10% 20%, rgba(6, 182, 212, 0.08) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(59, 130, 246, 0.08) 0%, transparent 40%),
+    radial-gradient(circle at 50% 50%, rgba(168, 85, 247, 0.04) 0%, transparent 60%),
+    var(--bg-root);
 }
 
 .hero-cyan {

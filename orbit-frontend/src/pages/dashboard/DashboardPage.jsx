@@ -1,23 +1,21 @@
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import Layout from '../../components/layout/Layout'
-import { Card, ActionCard } from '../../components/common/Card'
-import { Badge, RoleBadge } from '../../components/common/Badge'
+import { ActionCard } from '../../components/common/Card'
+import { RoleBadge } from '../../components/common/Badge'
 import { StatCard, StatsGrid } from '../../components/common/StatCard'
 import { HeroSection } from '../../components/common/HeroSection'
 
-// Icon SVGs
-const GridIcon = () => <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h12a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6z"/></svg>
-const BookIcon = () => <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"/></svg>
-const TicketIcon = () => <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M4.5 3.5a1 1 0 00-1 1v12a1 1 0 001 1H15.5a1 1 0 001-1v-12a1 1 0 00-1-1H4.5zm0-1h11a2 2 0 012 2v12a2 2 0 01-2 2h-11a2 2 0 01-2-2V4.5a2 2 0 012-2z"/></svg>
-const BuildingIcon = () => <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/></svg>
+// ── Icons ────────────────────────────────────────────────────────────────────
+const BookIcon = () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" /></svg>
+const TicketIcon = () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" /></svg>
+const BuildingIcon = () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
 
-// ── Role config ───────────────────────────────────────────────────────────────
 const ROLE_CFG = {
-  USER:       { color: 'cyan',   label: '👤 USER'       },
-  TECHNICIAN: { color: 'amber',  label: '🔧 TECHNICIAN' },
-  ADMIN:      { color: 'purple', label: '⚡ ADMIN'      },
-  MANAGER:    { color: 'green',  label: '🏗️ MANAGER'   },
+  USER:       { color: 'cyan',   label: 'USER'       },
+  TECHNICIAN: { color: 'amber',  label: 'TECHNICIAN' },
+  ADMIN:      { color: 'purple', label: 'ADMIN'      },
+  MANAGER:    { color: 'green',  label: 'MANAGER'   },
 }
 
 const DashboardPage = () => {
@@ -25,50 +23,64 @@ const DashboardPage = () => {
   const { user } = useAuth()
   const role = user?.role ?? 'USER'
   const cfg = ROLE_CFG[role] ?? ROLE_CFG.USER
-  const firstName = user?.name?.split(' ')[0] ?? 'there'
+  const firstName = user?.name?.split(' ')[0] ?? 'Explorer'
 
   return (
     <Layout>
-      {/* ── Hero banner ── */}
-      <HeroSection
-        title={`Welcome back, ${firstName} 👋`}
-        subtitle="Here's what's happening on campus today."
-        accentColor={cfg.color}
-        icon="⚡"
-        roleBadge={<RoleBadge role={role} />}
-        stats={[
-          { value: '—', label: 'Resources' },
-          { value: '—', label: 'Bookings' },
-          { value: '—', label: 'Pending' },
-          { value: '—', label: 'Tickets' },
-        ]}
-      />
+      <div className="max-w-7xl mx-auto">
+        {/* ── Status Banner ── */}
+        <HeroSection
+          title={`Welcome back, ${firstName}`}
+          subtitle="All campus systems are currently operational in your sector."
+          accentColor={cfg.color}
+          icon="⚡"
+          roleBadge={<RoleBadge role={role} />}
+          stats={[
+            { value: 'Online', label: 'Network' },
+            { value: 'Active', label: 'Sessions' },
+            { value: 'Low',    label: 'Latencey' },
+            { value: '24.1c',  label: 'Climate' },
+          ]}
+        />
 
-      {/* ── Quick Actions Section ── */}
-      <div className="mt-8">
-        <h2 className="text-xl font-bold text-white mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <ActionCard
-            icon={<BookIcon />}
-            title="Book a Resource"
-            description="Reserve campus rooms, labs, and equipment 24⁄7"
-            onClick={() => navigate('/bookings/new')}
-            accentColor={cfg.color}
-          />
-          <ActionCard
-            icon={<TicketIcon />}
-            title="Report an Issue"
-            description="Submit a maintenance or incident ticket"
-            onClick={() => navigate('/tickets')}
-            accentColor={cfg.color}
-          />
-          <ActionCard
-            icon={<BuildingIcon />}
-            title="Browse Resources"
-            description="Explore all available campus facilities"
-            onClick={() => navigate('/resources')}
-            accentColor={cfg.color}
-          />
+        {/* ── Core Metrics ── */}
+        <StatsGrid>
+           <StatCard icon="🏛️" label="Total Resources" value="28" trend="up" trendValue="+3 new" color="cyan" />
+           <StatCard icon="📅" label="Active Bookings" value="12" trend="up" trendValue="80% util" color="blue" />
+           <StatCard icon="🎫" label="Open Tickets"    value="04" trend="down" trendValue="-2 fixed" color="amber" />
+           <StatCard icon="🛡️" label="System Health"   value="99%" color="green" />
+        </StatsGrid>
+
+        {/* ── Quick Control Panel ── */}
+        <div className="mt-12 mb-20">
+          <div className="flex items-center gap-3 mb-6">
+             <div className="w-1.5 h-6 bg-cyan-400 rounded-full" />
+             <h2 className="text-xl font-black text-white uppercase tracking-tight">Rapid Access Panel</h2>
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <ActionCard
+              icon={<BookIcon />}
+              title="Secure Booking"
+              description="Instantly reserve lecture halls, pods, and high-performance labs."
+              onClick={() => navigate('/bookings/new')}
+              accentColor="cyan"
+            />
+            <ActionCard
+              icon={<TicketIcon />}
+              title="Submit Report"
+              description="Notify campus technicians about equipment faults or incidents."
+              onClick={() => navigate('/tickets/new')}
+              accentColor="amber"
+            />
+            <ActionCard
+              icon={<BuildingIcon />}
+              title="Infrastructure Map"
+              description="Dynamic catalogue of all campus smart-assets and facilities."
+              onClick={() => navigate('/resources')}
+              accentColor="blue"
+            />
+          </div>
         </div>
       </div>
     </Layout>

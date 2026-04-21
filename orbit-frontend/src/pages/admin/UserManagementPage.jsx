@@ -2,26 +2,9 @@ import { useEffect, useState } from 'react'
 import axiosInstance         from '../../api/axiosInstance'
 import Layout                from '../../components/layout/Layout'
 import { useAuth }           from '../../context/AuthContext'
+import { RoleBadge, Badge }  from '../../components/common/Badge'
 
 const ROLES = ['USER', 'MANAGER', 'TECHNICIAN', 'ADMIN']
-
-// ── Role badge config ─────────────────────────────────────────────────────────
-const ROLE_CFG = {
-  ADMIN:      { rgb: '168,85,247', label: '⚡ ADMIN'      },
-  MANAGER:    { rgb: '16,185,129', label: '🏗️ MANAGER'   },
-  TECHNICIAN: { rgb: '245,158,11', label: '🔧 TECHNICIAN' },
-  USER:       { rgb: '6,182,212',  label: '👤 USER'       },
-}
-
-const RoleBadge = ({ role }) => {
-  const cfg = ROLE_CFG[role] ?? { rgb: '100,116,139', label: role }
-  return (
-    <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-bold"
-      style={{ background: `rgba(${cfg.rgb},0.12)`, border: `1px solid rgba(${cfg.rgb},0.28)`, color: `rgb(${cfg.rgb})` }}>
-      {cfg.label}
-    </span>
-  )
-}
 
 const AVATAR_STYLE = {
   ADMIN:      'role-admin-avatar',
@@ -71,197 +54,186 @@ const UserManagementPage = () => {
 
   return (
     <Layout>
-
-      {/* ── Header ── */}
-      <div className="flex items-center justify-between mb-6 anim-fade-in-up">
-        <div>
-          <h1 className="text-2xl font-bold text-white">User Management</h1>
-          <p className="text-[13px] mt-1 flex items-center gap-2" style={{ color: '#475569' }}>
-            <span className="h-1.5 w-1.5 rounded-full" style={{ background: '#10b981', boxShadow: '0 0 6px #10b981', display: 'inline-block' }}/>
-            {users.length} registered users
-          </p>
-        </div>
-      </div>
-
-      {/* ── Error ── */}
-      {error && (
-        <div className="mb-4 flex items-start gap-2.5 rounded-xl px-4 py-3 anim-fade-in"
-          style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}>
-          <svg className="h-4 w-4 mt-0.5 shrink-0 text-red-400" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd"/>
-          </svg>
-          <p className="text-sm text-red-400">{error}</p>
-        </div>
-      )}
-
-      {/* ── Search ── */}
-      <div className="mb-5">
-        <div className="relative w-full sm:w-80">
-          <span className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: '#475569' }}>
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-          </span>
-          <input
-            type="text" value={search} onChange={e => setSearch(e.target.value)}
-            placeholder="Search by name or email…"
-            className="input-glass pl-10 pr-4 py-2.5 text-sm w-full"
-          />
-        </div>
-      </div>
-
-      {/* ── Table ── */}
-      <div className="rounded-2xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.08)' }}>
-
-        {loading ? (
-          <div className="py-20 flex flex-col items-center gap-4" style={{ color: '#334155' }}>
-            {/* Mini orbit spinner */}
-            <div className="relative w-10 h-10">
-              <svg className="absolute inset-0 w-full h-full anim-orbit" viewBox="0 0 40 40" fill="none">
-                <circle cx="20" cy="20" r="16" stroke="rgba(6,182,212,0.3)" strokeWidth="1.5" strokeDasharray="4 4"/>
-                <circle cx="36" cy="20" r="2.5" fill="#06b6d4"/>
-              </svg>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-4 h-4 rounded-full" style={{ background: 'linear-gradient(135deg,#06b6d4,#3b82f6)' }}/>
-              </div>
+      <div className="max-w-7xl mx-auto pb-20">
+        
+        {/* ── Header ── */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 anim-fade-in-up">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+               <div className="h-1.5 w-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_#06b6d4]" />
+               <span className="text-[10px] font-black text-cyan-400 uppercase tracking-[0.2em]">Platform Control</span>
             </div>
-            <p className="text-sm">Loading users…</p>
+            <h1 className="text-4xl font-black text-white tracking-tight uppercase">User Directory</h1>
+            <p className="text-slate-500 font-medium mt-1">Manage platform access, roles, and security protocols.</p>
           </div>
-
-        ) : filtered.length === 0 ? (
-          <div className="py-20 text-center" style={{ color: '#334155' }}>
-            <p className="text-sm font-medium">No users found.</p>
-            <p className="text-[12px] mt-1">Try a different search term</p>
+          
+          <div className="flex items-center gap-4">
+             <div className="glass-card px-4 py-3 flex flex-col items-end">
+                <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Total Population</span>
+                <span className="text-xl font-black text-white leading-none">{users.length}</span>
+             </div>
           </div>
+        </div>
 
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full">
-              <thead>
-                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-                  {['User', 'Role', 'Provider', 'Joined', 'Actions'].map(h => (
-                    <th key={h} className="px-5 py-3.5 text-left text-[10px] font-bold uppercase tracking-widest" style={{ color: '#334155' }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((u, idx) => (
-                  <tr
-                    key={u.id}
-                    className="transition-all duration-150"
-                    style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', animationDelay: `${idx * 25}ms` }}
-                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(6,182,212,0.04)'; e.currentTarget.style.borderLeft = '2px solid rgba(6,182,212,0.35)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderLeft = 'none'; }}
-                  >
-                    {/* User info */}
-                    <td className="px-5 py-4">
-                      <div className="flex items-center gap-3">
-                        {u.profilePicture ? (
-                          <img src={u.profilePicture} alt={u.name} className="h-9 w-9 rounded-full object-cover flex-shrink-0"
-                            style={{ boxShadow: '0 0 0 1.5px rgba(6,182,212,0.4)' }}/>
-                        ) : (
-                          <div className={`h-9 w-9 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0 ${AVATAR_STYLE[u.role] ?? 'bg-slate-600'}`}>
-                            {u.name?.charAt(0).toUpperCase()}
-                          </div>
-                        )}
-                        <div>
-                          <p className="text-[13px] font-semibold text-white leading-tight">{u.name}</p>
-                          <p className="text-[11px] mt-0.5" style={{ color: '#475569' }}>{u.email}</p>
-                        </div>
-                      </div>
-                    </td>
+        {/* ── Error Notification ── */}
+        {error && (
+          <div className="mb-8 flex items-center gap-3 rounded-xl px-4 py-3 border border-red-500/20 bg-red-500/5 text-red-400 anim-fade-in">
+            <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd"/></svg>
+            <span className="text-sm font-bold uppercase tracking-wider">{error}</span>
+            <button onClick={() => setError('')} className="ml-auto text-red-400 hover:text-white transition-colors">✕</button>
+          </div>
+        )}
 
-                    {/* Role badge */}
-                    <td className="px-5 py-4"><RoleBadge role={u.role}/></td>
+        {/* ── Control Bar ── */}
+        <div className="flex flex-col md:flex-row gap-4 mb-8">
+          <div className="relative flex-1">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600">
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            </span>
+            <input
+              type="text" value={search} onChange={e => setSearch(e.target.value)}
+              placeholder="Filter by name, email, or digital signature…"
+              className="input-glass pl-12 pr-6 py-4 text-sm w-full font-medium"
+            />
+          </div>
+          {search && (
+            <button onClick={() => setSearch('')} className="btn-secondary px-8">Reset View</button>
+          )}
+        </div>
 
-                    {/* Provider */}
-                    <td className="px-5 py-4">
-                      <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[10px] font-semibold"
-                        style={u.provider === 'GOOGLE'
-                          ? { background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#fca5a5' }
-                          : { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#64748b' }}>
-                        {u.provider === 'GOOGLE' && (
-                          <svg className="h-3 w-3" viewBox="0 0 24 24">
-                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                          </svg>
-                        )}
-                        {u.provider}
-                      </span>
-                    </td>
+        {/* ── Data Grid / Table ── */}
+        <div className="glass-card overflow-hidden border-white/5">
+          {loading ? (
+            <div className="py-32 flex flex-col items-center gap-6">
+               <div className="relative w-16 h-16">
+                 <div className="absolute inset-0 rounded-full border-4 border-cyan-500/10 border-t-cyan-500 animate-spin" />
+                 <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-4 h-4 rounded-full bg-cyan-400 shadow-[0_0_12px_#06b6d4]" />
+                 </div>
+               </div>
+               <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.3em] anim-pulse">Synchronizing directory...</p>
+            </div>
 
-                    {/* Joined */}
-                    <td className="px-5 py-4 text-[12px]" style={{ color: '#475569' }}>{formatDate(u.createdAt)}</td>
+          ) : filtered.length === 0 ? (
+            <div className="py-32 text-center">
+              <div className="text-4xl mb-4 opacity-50">👤</div>
+              <p className="text-lg font-bold text-white tracking-tight">No entities found</p>
+              <p className="text-sm text-slate-500 mt-1">Refine your scanning parameters.</p>
+            </div>
 
-                    {/* Actions */}
-                    <td className="px-5 py-4">
-                      {u.id !== currentUser?.id ? (
-                        <div className="flex items-center gap-2">
-                          {/* Role select */}
-                          <select
-                            value={u.role}
-                            onChange={e => handleRoleChange(u.id, e.target.value)}
-                            disabled={updating === u.id}
-                            className="rounded-xl text-[12px] font-semibold px-2.5 py-1.5 outline-none transition-all disabled:opacity-50"
-                            style={{
-                              background: 'rgba(255,255,255,0.05)',
-                              border: '1px solid rgba(255,255,255,0.1)',
-                              color: '#e2e8f0',
-                              fontFamily: 'var(--font-sans)',
-                            }}
-                          >
-                            {ROLES.map(r => <option key={r} value={r} style={{ background: '#0a0a14' }}>{r}</option>)}
-                          </select>
-
-                          {/* Delete */}
-                          {confirmDel === u.id ? (
-                            <div className="flex items-center gap-1">
-                              <button
-                                onClick={() => handleDelete(u.id)} disabled={deleting === u.id}
-                                className="rounded-xl px-3 py-1.5 text-[11px] font-bold text-white transition-all disabled:opacity-50"
-                                style={{ background: 'linear-gradient(135deg,#ef4444,#dc2626)', boxShadow: '0 0 12px rgba(239,68,68,0.3)' }}>
-                                {deleting === u.id ? '…' : 'Confirm'}
-                              </button>
-                              <button onClick={() => setConfirmDel(null)}
-                                className="rounded-xl px-3 py-1.5 text-[11px] transition-all"
-                                style={{ color: '#64748b', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                                Cancel
-                              </button>
-                            </div>
-                          ) : (
-                            <button onClick={() => setConfirmDel(u.id)}
-                              className="rounded-xl px-3 py-1.5 text-[11px] font-semibold transition-all"
-                              style={{ color: '#ef4444', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.18)' }}
-                              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.15)'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.4)'; e.currentTarget.style.boxShadow = '0 0 12px rgba(239,68,68,0.2)' }}
-                              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.08)'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.18)'; e.currentTarget.style.boxShadow = 'none' }}>
-                              Delete
-                            </button>
-                          )}
-                        </div>
-                      ) : (
-                        <span className="text-[11px] italic" style={{ color: '#334155' }}>You</span>
-                      )}
-                    </td>
+          ) : (
+            <div className="overflow-x-auto overflow-y-hidden">
+              <table className="min-w-full">
+                <thead>
+                  <tr className="border-b border-white/5 bg-white/[0.01]">
+                    {['Member Entity', 'Authorization', 'Protocol', 'Registered', 'Control'].map(h => (
+                      <th key={h} className="px-8 py-5 text-left text-[10px] font-black uppercase tracking-[0.2em] text-slate-600">{h}</th>
+                    ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                </thead>
+                <tbody>
+                  {filtered.map((u, idx) => (
+                    <tr
+                      key={u.id}
+                      className="group transition-all duration-300 hover:bg-white/[0.03] border-b border-white/[0.02] last:border-0"
+                    >
+                      {/* Member Info */}
+                      <td className="px-8 py-5">
+                        <div className="flex items-center gap-4">
+                          <div className="relative">
+                            {u.profilePicture ? (
+                              <img src={u.profilePicture} alt={u.name} className="h-10 w-10 rounded-xl object-cover ring-2 ring-white/5 group-hover:ring-cyan-500/50 transition-all"/>
+                            ) : (
+                              <div className={`h-10 w-10 rounded-xl flex items-center justify-center text-xs font-black text-white shadow-lg ${AVATAR_STYLE[u.role] ?? 'bg-slate-600'} ring-2 ring-white/5 group-hover:ring-cyan-500/50 transition-all`}>
+                                {u.name?.charAt(0).toUpperCase()}
+                              </div>
+                            )}
+                            <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-[#09090b] rounded-full shadow-[0_0_8px_#10b981]" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-black text-white tracking-tight leading-none mb-1 group-hover:text-cyan-400 transition-colors">{u.name}</p>
+                            <p className="text-[11px] font-bold text-slate-600 tracking-tighter truncate max-w-[200px]">{u.email}</p>
+                          </div>
+                        </div>
+                      </td>
 
-        {/* ── Table footer ── */}
-        {!loading && filtered.length > 0 && (
-          <div className="px-5 py-3 flex items-center justify-between" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-            <p className="text-[11px]" style={{ color: '#334155' }}>
-              Showing {filtered.length} of {users.length} users
-            </p>
-            {search && (
-              <button onClick={() => setSearch('')} className="text-[11px] font-medium transition-colors"
-                style={{ color: '#06b6d4' }}
-                onMouseEnter={e => e.currentTarget.style.color = '#67e8f9'}
-                onMouseLeave={e => e.currentTarget.style.color = '#06b6d4'}>
-                Clear filter
-              </button>
-            )}
-          </div>
-        )}
+                      {/* Role Badge */}
+                      <td className="px-8 py-5">
+                         <RoleBadge role={u.role}/>
+                      </td>
+
+                      {/* Protocol / Provider */}
+                      <td className="px-8 py-5">
+                        <div className="flex items-center gap-2">
+                           <Badge color={u.provider === 'GOOGLE' ? 'red' : 'blue'}>
+                              {u.provider === 'GOOGLE' && 'OAuth 2.0'}
+                              {u.provider !== 'GOOGLE' && 'Local Auth'}
+                           </Badge>
+                        </div>
+                      </td>
+
+                      {/* Join Date */}
+                      <td className="px-8 py-5">
+                        <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">{formatDate(u.createdAt)}</span>
+                      </td>
+
+                      {/* Control Panel */}
+                      <td className="px-8 py-5">
+                        {u.id !== currentUser?.id ? (
+                          <div className="flex items-center gap-3">
+                            <select
+                              value={u.role}
+                              onChange={e => handleRoleChange(u.id, e.target.value)}
+                              disabled={updating === u.id}
+                              className="input-glass !py-1.5 !px-3 !rounded-lg text-[10px] font-black uppercase tracking-widest disabled:opacity-50 cursor-pointer hover:border-white/20"
+                            >
+                              {ROLES.map(r => <option key={r} value={r} className="bg-[#050508] text-white font-sans">{r}</option>)}
+                            </select>
+
+                            {confirmDel === u.id ? (
+                              <div className="flex items-center gap-1 anim-fade-in">
+                                <button onClick={() => handleDelete(u.id)} disabled={deleting === u.id} className="btn-danger !px-3 !py-1.5 !text-[9px] !rounded-lg uppercase tracking-widest font-black">
+                                  {deleting === u.id ? '...' : 'Wipe'}
+                                </button>
+                                <button onClick={() => setConfirmDel(null)} className="btn-secondary !px-3 !py-1.5 !text-[9px] !rounded-lg uppercase tracking-widest font-black">
+                                  Abort
+                                </button>
+                              </div>
+                            ) : (
+                              <button 
+                                onClick={() => setConfirmDel(u.id)} 
+                                className="p-2 rounded-lg bg-red-500/5 text-red-500/50 hover:bg-red-500/10 hover:text-red-500 border border-red-500/0 hover:border-red-500/20 transition-all group/del"
+                                title="Terminate Entity"
+                              >
+                                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                              </button>
+                            )}
+                          </div>
+                        ) : (
+                          <Badge color="cyan">Active Identity</Badge>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* ── Table Footer ── */}
+          {!loading && filtered.length > 0 && (
+            <div className="px-8 py-5 border-t border-white/5 bg-white/[0.01] flex items-center justify-between">
+              <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">
+                Directory showing {filtered.length} of {users.length} unique entities
+              </p>
+              {search && (
+                <button onClick={() => setSearch('')} className="text-[10px] font-black text-cyan-400 uppercase tracking-widest hover:text-white transition-colors">
+                  Reset Global View
+                </button>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </Layout>
   )
