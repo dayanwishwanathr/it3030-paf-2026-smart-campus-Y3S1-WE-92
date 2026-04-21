@@ -9,6 +9,7 @@ const PAGE_TITLES = {
   '/admin/users':       { label: 'User Management', icon: '👥' },
   '/resources':         { label: 'Resources',       icon: '🏛️'  },
   '/bookings':          { label: 'Bookings',        icon: '📅' },
+  '/bookings/manage':   { label: 'Manage Bookings', icon: '📅' },
   '/bookings/new':      { label: 'New Booking',     icon: '➕' },
   '/tickets':           { label: 'Tickets',         icon: '🎫' },
   '/tickets/new':       { label: 'New Ticket',      icon: '➕' },

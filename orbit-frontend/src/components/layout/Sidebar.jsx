@@ -16,13 +16,13 @@ const NAV = {
     { to: '/admin/dashboard', label: 'Dashboard',  icon: <GridIcon /> },
     { to: '/admin/users',     label: 'Users',       icon: <UsersIcon /> },
     { to: '/resources',       label: 'Resources',   icon: <BuildingIcon /> },
-    { to: '/bookings',        label: 'Bookings',    icon: <CalIcon /> },
+    { to: '/bookings/manage', label: 'Bookings',    icon: <CalIcon /> },
     { to: '/tickets',         label: 'Tickets',     icon: <TicketIcon /> },
   ],
   MANAGER:    [
     { to: '/manager/dashboard', label: 'Dashboard',      icon: <GridIcon /> },
     { to: '/resources',         label: 'Resources',      icon: <BuildingIcon /> },
-    { to: '/bookings',          label: 'Bookings',       icon: <CalIcon /> },
+    { to: '/bookings/manage',   label: 'Bookings',       icon: <CalIcon /> },
   ],
   TECHNICIAN: [
     { to: '/dashboard', label: 'Dashboard', icon: <GridIcon /> },
