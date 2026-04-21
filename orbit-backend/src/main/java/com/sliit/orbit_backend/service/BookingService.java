@@ -149,9 +149,13 @@ public class BookingService {
     }
 
     private void checkConflicts(String resourceId, java.time.LocalDate date, java.time.LocalTime startTime, java.time.LocalTime endTime) {
-        List<Booking> conflicts = bookingRepository.findConflictingBookings(resourceId, date, startTime, endTime);
-        if (!conflicts.isEmpty()) {
-            throw new IllegalArgumentException("The resource is already booked during this time window.");
+        List<Booking> approvedBookings = bookingRepository.findByResourceIdAndDateAndStatus(resourceId, date, BookingStatus.APPROVED);
+        
+        for (Booking existing : approvedBookings) {
+            // Overlap condition: existingStart < requestEnd AND existingEnd > requestStart
+            if (existing.getStartTime().isBefore(endTime) && existing.getEndTime().isAfter(startTime)) {
+                throw new IllegalArgumentException("The resource is already booked during this time window.");
+            }
         }
     }
 

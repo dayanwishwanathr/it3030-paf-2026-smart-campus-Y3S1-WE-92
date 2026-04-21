@@ -36,6 +36,8 @@ public interface BookingRepository extends MongoRepository<Booking, String> {
 
     List<Booking> findByResourceIdAndDate(String resourceId, LocalDate date);
 
+    List<Booking> findByResourceIdAndDateAndStatus(String resourceId, LocalDate date, BookingStatus status);
+
     // ── Conflict detection ────────────────────────────────────────────────────
     /**
      * Returns any APPROVED booking for the same resource on the same date
