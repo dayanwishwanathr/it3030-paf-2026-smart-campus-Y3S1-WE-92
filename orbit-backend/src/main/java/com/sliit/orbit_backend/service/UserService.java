@@ -1,14 +1,17 @@
 package com.sliit.orbit_backend.service;
 
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+
 import com.sliit.orbit_backend.dto.response.UserResponse;
 import com.sliit.orbit_backend.model.User;
 import com.sliit.orbit_backend.model.enums.Role;
 import com.sliit.orbit_backend.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -26,14 +29,14 @@ public class UserService {
 
     // Get single user by ID — Admin only
     public UserResponse getUserById(String id) {
-        User user = userRepository.findById(id)
+        User user = userRepository.findById(Objects.requireNonNull(id, "User id must not be null"))
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
         return mapToUserResponse(user);
     }
 
     // Update a user's role — Admin only
     public UserResponse updateUserRole(String id, String newRole) {
-        User user = userRepository.findById(id)
+        User user = userRepository.findById(Objects.requireNonNull(id, "User id must not be null"))
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
 
         try {
@@ -48,10 +51,11 @@ public class UserService {
 
     // Delete a user — Admin only
     public void deleteUser(String id) {
-        if (!userRepository.existsById(id)) {
+        String userId = Objects.requireNonNull(id, "User id must not be null");
+        if (!userRepository.existsById(userId)) {
             throw new RuntimeException("User not found with id: " + id);
         }
-        userRepository.deleteById(id);
+        userRepository.deleteById(userId);
     }
 
     // Helper: map User model → UserResponse DTO

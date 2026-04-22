@@ -9,6 +9,13 @@ import OAuth2Success  from './pages/auth/OAuth2Success'
 
 // User pages
 import DashboardPage  from './pages/dashboard/DashboardPage'
+import CataloguePage  from './pages/resources/CataloguePage'
+
+// Booking pages
+import BookResourcePage   from './pages/bookings/BookResourcePage'
+import MyBookingsPage     from './pages/bookings/MyBookingsPage'
+import ManageBookingsPage from './pages/bookings/ManageBookingsPage'
+import AvailabilityPage   from './pages/bookings/AvailabilityPage'
 
 // Admin pages
 import AdminDashboard     from './pages/admin/AdminDashboard'
@@ -17,12 +24,24 @@ import UserManagementPage from './pages/admin/UserManagementPage'
 // Manager pages
 import ManagerDashboard from './pages/manager/ManagerDashboard'
 
+// Public pages
+import PublicResourcePreviewPage from './pages/resources/PublicResourcePreviewPage'
+
+// ── Module C: Tickets & Notifications ─────────────────────────────────────────
+import ReportIssuePage         from './pages/tickets/ReportIssuePage'
+import TicketDetailsPage       from './pages/tickets/TicketDetailsPage'
+import TechnicianDashboardPage from './pages/tickets/TechnicianDashboardPage'
+import NotificationsPage       from './pages/notifications/NotificationsPage'
+
+const ALL_ROLES = ['USER', 'TECHNICIAN', 'ADMIN', 'MANAGER']
+
 const App = () => {
   return (
     <AuthProvider>
       <Routes>
 
         {/* ── Public ──────────────────────────────────────────────── */}
+        <Route path="/resources/preview/:id" element={<PublicResourcePreviewPage />} />
         <Route path="/login"          element={<LoginPage />} />
         <Route path="/register"       element={<RegisterPage />} />
         <Route path="/oauth2/success" element={<OAuth2Success />} />
@@ -31,6 +50,53 @@ const App = () => {
         <Route path="/dashboard" element={
           <ProtectedRoute allowedRoles={['USER', 'TECHNICIAN']}>
             <DashboardPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/resources" element={
+          <ProtectedRoute allowedRoles={ALL_ROLES}>
+            <CataloguePage />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/bookings/new" element={
+          <ProtectedRoute allowedRoles={ALL_ROLES}>
+            <BookResourcePage />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/bookings" element={
+          <ProtectedRoute allowedRoles={ALL_ROLES}>
+            <MyBookingsPage />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/bookings/availability" element={
+          <ProtectedRoute allowedRoles={ALL_ROLES}>
+            <AvailabilityPage />
+          </ProtectedRoute>
+        } />
+
+        {/* ── Module C: Tickets ────────────────────────────────────── */}
+        <Route path="/tickets" element={
+          <ProtectedRoute allowedRoles={ALL_ROLES}>
+            <TechnicianDashboardPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/tickets/new" element={
+          <ProtectedRoute allowedRoles={ALL_ROLES}>
+            <ReportIssuePage />
+          </ProtectedRoute>
+        } />
+        <Route path="/tickets/:id" element={
+          <ProtectedRoute allowedRoles={ALL_ROLES}>
+            <TicketDetailsPage />
+          </ProtectedRoute>
+        } />
+
+        {/* ── Module D: Notifications ───────────────────────────────── */}
+        <Route path="/notifications" element={
+          <ProtectedRoute allowedRoles={ALL_ROLES}>
+            <NotificationsPage />
           </ProtectedRoute>
         } />
 
@@ -43,6 +109,13 @@ const App = () => {
         <Route path="/admin/users" element={
           <ProtectedRoute allowedRoles={['ADMIN']}>
             <UserManagementPage />
+          </ProtectedRoute>
+        } />
+
+        {/* ── ADMIN & MANAGER ──────────────────────────────────────── */}
+        <Route path="/bookings/manage" element={
+          <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER']}>
+            <ManageBookingsPage />
           </ProtectedRoute>
         } />
 
