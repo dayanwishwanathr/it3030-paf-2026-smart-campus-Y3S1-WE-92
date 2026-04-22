@@ -1,13 +1,16 @@
 package com.sliit.orbit_backend.service;
 
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+
 import com.sliit.orbit_backend.dto.response.NotificationResponse;
 import com.sliit.orbit_backend.model.Notification;
 import com.sliit.orbit_backend.repository.NotificationRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -30,7 +33,7 @@ public class NotificationService {
                 .isRead(false)
                 .build();
 
-        notificationRepository.save(notification);
+        notificationRepository.save(Objects.requireNonNull(notification, "Notification must not be null"));
     }
 
     // Get all notifications for current user (newest first)
@@ -49,7 +52,7 @@ public class NotificationService {
 
     // Mark a single notification as read
     public NotificationResponse markAsRead(String notificationId, String userId) {
-        Notification notification = notificationRepository.findById(notificationId)
+        Notification notification = notificationRepository.findById(Objects.requireNonNull(notificationId, "Notification id must not be null"))
                 .orElseThrow(() -> new RuntimeException("Notification not found"));
 
         if (!notification.getUserId().equals(userId)) {
@@ -72,7 +75,7 @@ public class NotificationService {
 
     // Delete a notification
     public void deleteNotification(String notificationId, String userId) {
-        Notification notification = notificationRepository.findById(notificationId)
+        Notification notification = notificationRepository.findById(Objects.requireNonNull(notificationId, "Notification id must not be null"))
                 .orElseThrow(() -> new RuntimeException("Notification not found"));
 
         if (!notification.getUserId().equals(userId)) {

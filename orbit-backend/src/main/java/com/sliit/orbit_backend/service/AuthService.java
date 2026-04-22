@@ -13,6 +13,8 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
+
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -36,7 +38,7 @@ public class AuthService {
                 .provider(AuthProvider.LOCAL)
                 .build();
 
-        User saved = userRepository.save(user);
+        User saved = userRepository.save(Objects.requireNonNull(user, "User must not be null"));
 
         // Generate token and return response
         String token = jwtUtil.generateToken(saved.getEmail(), saved.getRole().name());
@@ -80,7 +82,7 @@ public class AuthService {
     }
 
     public AuthResponse getCurrentUser(String email) {
-        User user = userRepository.findByEmail(email)
+        User user = userRepository.findByEmail(Objects.requireNonNull(email, "Email must not be null"))
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         return AuthResponse.builder()

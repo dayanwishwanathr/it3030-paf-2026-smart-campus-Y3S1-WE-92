@@ -2,7 +2,6 @@ package com.sliit.orbit_backend.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import com.sliit.orbit_backend.security.JwtAuthFilter;
-import com.sliit.orbit_backend.security.OAuth2SuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,9 +30,8 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
-    private final OAuth2SuccessHandler oAuth2SuccessHandler;
 
-    @Value("${app.cors.allowed-origins}")
+    @Value("${app.cors.allowed-origins:http://localhost:5173}")
     private String allowedOriginsRaw;
 
     @Bean
@@ -50,22 +48,25 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
 
-                        // ── OAuth2 & auth endpoints ───────────────────────────────
-                        .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
-                        .requestMatchers("/api/auth/**").permitAll()
+                // ── Public ────────────────────────────────────────────────
+                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/error").permitAll()
+                .requestMatchers("/api/bookings/public/**").permitAll()
 
-                        // ── Resources: public read, MANAGER manages ───────────────
-                        .requestMatchers(HttpMethod.GET, "/api/resources/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/resources/**").hasRole("MANAGER")
-                        .requestMatchers(HttpMethod.PUT, "/api/resources/**").hasRole("MANAGER")
-                        .requestMatchers(HttpMethod.PATCH, "/api/resources/**").hasRole("MANAGER")
-                        .requestMatchers(HttpMethod.DELETE, "/api/resources/**").hasRole("MANAGER")
+                // ── Resources: public read, MANAGER manages ───────────────
+                .requestMatchers(HttpMethod.GET,    "/api/resources/**").permitAll()
+                .requestMatchers(HttpMethod.POST,   "/api/resources/**").hasAnyRole("MANAGER", "ADMIN")
+                .requestMatchers(HttpMethod.PUT,    "/api/resources/**").hasAnyRole("MANAGER", "ADMIN")
+                .requestMatchers(HttpMethod.PATCH,  "/api/resources/**").hasAnyRole("MANAGER", "ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/resources/**").hasAnyRole("MANAGER", "ADMIN")
 
                         // ── Bookings: MANAGER approves/rejects, USER creates ──────
                         .requestMatchers("/api/bookings/**").hasAnyRole("USER", "MANAGER", "ADMIN")
 
-                        // ── Tickets: TECHNICIAN + ADMIN manage, USER creates ──────
-                        .requestMatchers("/api/tickets/**").hasAnyRole("USER", "TECHNICIAN", "MANAGER", "ADMIN")
+                // ── Tickets: TECHNICIAN + ADMIN manage, USER creates ──────
+                // Attachment download is public so <img> tags work in browser
+                .requestMatchers(HttpMethod.GET, "/api/tickets/attachments/**").permitAll()
+                .requestMatchers("/api/tickets/**").hasAnyRole("USER", "TECHNICIAN", "MANAGER", "ADMIN")
 
                         // ── Notifications: any logged-in user ─────────────────────
                         .requestMatchers("/api/notifications/**").authenticated()
@@ -73,18 +74,17 @@ public class SecurityConfig {
                         // ── Users: ADMIN only ─────────────────────────────────────
                         .requestMatchers("/api/users/**").hasRole("ADMIN")
 
-                        // ── Everything else requires login ────────────────────────
-                        .anyRequest().authenticated())
-                // ── Wire OAuth2 login with our custom success handler ─────────
-                .oauth2Login(oauth2 -> oauth2
-                        .successHandler(oAuth2SuccessHandler))
-                .exceptionHandling(ex -> ex
-                        .authenticationEntryPoint((request, response, authException) -> {
-                            response.setStatus(jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED);
-                            response.setContentType("application/json");
-                            response.getWriter().write("{\"error\":\"Unauthorized\"}");
-                        }))
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                // ── Everything else requires login ────────────────────────
+                .anyRequest().authenticated()
+            )
+            .exceptionHandling(ex -> ex
+                .authenticationEntryPoint((request, response, authException) -> {
+                    response.setStatus(jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED);
+                    response.setContentType("application/json");
+                    response.getWriter().write("{\"error\":\"Unauthorized\"}");
+                })
+            )
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -103,9 +103,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        // Read comma-separated origins from application.properties
-        List<String> origins = Arrays.asList(allowedOriginsRaw.split(","));
-        config.setAllowedOrigins(origins);
+        config.setAllowedOriginPatterns(List.of("*")); // Allows any local IP dynamically
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);

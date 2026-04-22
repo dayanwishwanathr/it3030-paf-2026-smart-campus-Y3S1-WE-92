@@ -1,44 +1,97 @@
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import Layout from '../../components/layout/Layout'
 
-// ── Module card (featured tall) ───────────────────────────────────────────────
-const FeaturedCard = ({ icon, title, desc, to, stagger }) => (
-  <Link to={to} className={`glass-card-btn flex flex-col justify-between p-6 row-span-2 min-h-[200px] ${stagger}`}>
-    <div>
-      <div className="h-12 w-12 rounded-2xl flex items-center justify-center mb-5"
-        style={{ background: 'rgba(168,85,247,0.12)', border: '1px solid rgba(168,85,247,0.3)', boxShadow: '0 0 20px rgba(168,85,247,0.12)' }}>
+// ── Icons ────────────────────────────────────────────────────────────────────
+const UsersIcon = () => (
+  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+    <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+  </svg>
+)
+const BuildingIcon = () => (
+  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+    <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+  </svg>
+)
+const CalIcon = () => (
+  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 20 20">
+    <rect x="3" y="4" width="14" height="14" rx="1" strokeWidth="1.5" />
+    <line x1="14" y1="2" x2="14" y2="6" strokeWidth="1.5" />
+    <line x1="6" y1="2" x2="6" y2="6" strokeWidth="1.5" />
+    <line x1="3" y1="9" x2="17" y2="9" strokeWidth="1.5" />
+  </svg>
+)
+const TicketIcon = () => (
+  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+    <path d="M2 6a2 2 0 012-2h12a2 2 0 012 2v2a2 2 0 000 4v2a2 2 0 01-2 2H4a2 2 0 01-2-2v-2a2 2 0 000-4V6z" />
+  </svg>
+)
+
+// ── FeaturedCard (large hero-style card) ─────────────────────────────────────
+const FeaturedCard = ({ icon, title, desc, to, stagger }) => {
+  const navigate = useNavigate()
+  return (
+    <button
+      onClick={() => navigate(to)}
+      className={`w-full h-full text-left rounded-2xl p-6 flex flex-col gap-4 transition-all duration-300 hover:scale-[1.02] ${stagger ?? ''}`}
+      style={{
+        background: 'linear-gradient(135deg, rgba(168,85,247,0.12), rgba(168,85,247,0.04))',
+        border: '1px solid rgba(168,85,247,0.25)',
+      }}
+    >
+      <span
+        className="inline-flex items-center justify-center w-12 h-12 rounded-xl"
+        style={{ background: 'rgba(168,85,247,0.15)', color: 'rgb(168,85,247)' }}
+      >
         {icon}
+      </span>
+      <div>
+        <h3 className="text-base font-bold text-white mb-1">{title}</h3>
+        <p className="text-[13px]" style={{ color: '#64748b' }}>{desc}</p>
       </div>
-      <h3 className="text-base font-bold text-white leading-tight">{title}</h3>
-      <p className="text-[13px] mt-2 leading-relaxed" style={{ color: '#475569' }}>{desc}</p>
-    </div>
-    <div className="mt-6 flex items-center gap-2 text-[13px] font-semibold" style={{ color: 'rgb(168,85,247)' }}>
-      <span>Manage</span>
-      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
-      </svg>
-    </div>
-  </Link>
-)
+      <span
+        className="mt-auto text-[11px] font-semibold uppercase tracking-wider"
+        style={{ color: 'rgb(168,85,247)' }}
+      >
+        Manage →
+      </span>
+    </button>
+  )
+}
 
-// ── Module card (regular) ─────────────────────────────────────────────────────
-const ModuleCard = ({ icon, title, desc, to, accentRgb, stagger }) => (
-  <Link to={to} className={`glass-card-btn flex items-center gap-4 p-5 group ${stagger}`}>
-    <div className="h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0"
-      style={{ background: `rgba(${accentRgb},0.10)`, border: `1px solid rgba(${accentRgb},0.25)` }}>
-      {icon}
-    </div>
-    <div className="min-w-0 flex-1">
-      <p className="text-[13px] font-semibold text-white leading-tight">{title}</p>
-      <p className="text-[11px] mt-0.5 truncate" style={{ color: '#475569' }}>{desc}</p>
-    </div>
-    <svg className="h-4 w-4 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: `rgb(${accentRgb})` }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/>
-    </svg>
-  </Link>
-)
+// ── ModuleCard (smaller accent card) ─────────────────────────────────────────
+const ModuleCard = ({ icon, title, desc, to, accentRgb = '99,102,241', stagger }) => {
+  const navigate = useNavigate()
+  return (
+    <button
+      onClick={() => navigate(to)}
+      className={`w-full text-left rounded-2xl p-5 flex flex-col gap-3 transition-all duration-300 hover:scale-[1.02] ${stagger ?? ''}`}
+      style={{
+        background: `linear-gradient(135deg, rgba(${accentRgb},0.1), rgba(${accentRgb},0.03))`,
+        border: `1px solid rgba(${accentRgb},0.22)`,
+      }}
+    >
+      <span
+        className="inline-flex items-center justify-center w-10 h-10 rounded-xl"
+        style={{ background: `rgba(${accentRgb},0.15)`, color: `rgb(${accentRgb})` }}
+      >
+        {icon}
+      </span>
+      <div>
+        <h3 className="text-sm font-bold text-white mb-0.5">{title}</h3>
+        <p className="text-[12px]" style={{ color: '#64748b' }}>{desc}</p>
+      </div>
+      <span
+        className="mt-auto text-[11px] font-semibold uppercase tracking-wider"
+        style={{ color: `rgb(${accentRgb})` }}
+      >
+        Open →
+      </span>
+    </button>
+  )
+}
 
+// ── Page ─────────────────────────────────────────────────────────────────────
 const AdminDashboard = () => {
   const { user } = useAuth()
   const firstName = user?.name?.split(' ')[0] ?? 'Admin'
@@ -47,20 +100,36 @@ const AdminDashboard = () => {
     <Layout>
       {/* ── Hero banner ── */}
       <div className="relative overflow-hidden rounded-2xl p-6 mb-6 hero-purple">
-        <div className="absolute inset-0 dot-grid opacity-40"/>
-        <div className="absolute -right-10 -top-10 w-48 h-48 rounded-full"
-          style={{ background: 'radial-gradient(circle, rgba(168,85,247,0.25) 0%, transparent 70%)' }}/>
+        <div className="absolute inset-0 dot-grid opacity-40" />
+        <div
+          className="absolute -right-10 -top-10 w-48 h-48 rounded-full"
+          style={{ background: 'radial-gradient(circle, rgba(168,85,247,0.25) 0%, transparent 70%)' }}
+        />
 
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-widest mb-1" style={{ color: 'rgba(168,85,247,0.7)' }}>
+            <p
+              className="text-[11px] font-semibold uppercase tracking-widest mb-1"
+              style={{ color: 'rgba(168,85,247,0.7)' }}
+            >
               System Control
             </p>
             <h2 className="text-2xl font-bold text-white">Admin Panel — {firstName} 🛸</h2>
-            <p className="text-[13px] mt-1" style={{ color: '#64748b' }}>Full system control — users, resources, bookings, tickets.</p>
-            <span className="inline-flex items-center gap-1.5 mt-3 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-widest"
-              style={{ background: 'rgba(168,85,247,0.12)', border: '1px solid rgba(168,85,247,0.25)', color: 'rgb(168,85,247)' }}>
-              <span className="w-1.5 h-1.5 rounded-full" style={{ background: 'rgb(168,85,247)', boxShadow: '0 0 6px rgb(168,85,247)' }}/>
+            <p className="text-[13px] mt-1" style={{ color: '#64748b' }}>
+              Full system control — users, resources, bookings, tickets.
+            </p>
+            <span
+              className="inline-flex items-center gap-1.5 mt-3 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-widest"
+              style={{
+                background: 'rgba(168,85,247,0.12)',
+                border: '1px solid rgba(168,85,247,0.25)',
+                color: 'rgb(168,85,247)',
+              }}
+            >
+              <span
+                className="w-1.5 h-1.5 rounded-full"
+                style={{ background: 'rgb(168,85,247)', boxShadow: '0 0 6px rgb(168,85,247)' }}
+              />
               ⚡ ADMIN
             </span>
           </div>
@@ -69,14 +138,27 @@ const AdminDashboard = () => {
           <div className="flex flex-wrap gap-3">
             {[
               { label: 'Users',     rgb: '168,85,247' },
-              { label: 'Resources', rgb: '6,182,212'   },
-              { label: 'Bookings',  rgb: '16,185,129'  },
-              { label: 'Tickets',   rgb: '245,158,11'  },
+              { label: 'Resources', rgb: '6,182,212'  },
+              { label: 'Bookings',  rgb: '16,185,129' },
+              { label: 'Tickets',   rgb: '245,158,11' },
             ].map(({ label, rgb }) => (
-              <div key={label} className="flex flex-col items-center rounded-2xl px-4 py-3 min-w-[72px]"
-                style={{ background: `rgba(${rgb},0.08)`, border: `1px solid rgba(${rgb},0.22)` }}>
-                <span className="text-2xl font-black" style={{ color: `rgb(${rgb})`, textShadow: `0 0 12px rgba(${rgb},0.5)` }}>—</span>
-                <span className="text-[10px] font-bold uppercase tracking-wider mt-0.5" style={{ color: `rgba(${rgb},0.7)` }}>{label}</span>
+              <div
+                key={label}
+                className="flex flex-col items-center rounded-2xl px-4 py-3 min-w-[72px]"
+                style={{ background: `rgba(${rgb},0.08)`, border: `1px solid rgba(${rgb},0.22)` }}
+              >
+                <span
+                  className="text-2xl font-black"
+                  style={{ color: `rgb(${rgb})`, textShadow: `0 0 12px rgba(${rgb},0.5)` }}
+                >
+                  —
+                </span>
+                <span
+                  className="text-[10px] font-bold uppercase tracking-wider mt-0.5"
+                  style={{ color: `rgba(${rgb},0.7)` }}
+                >
+                  {label}
+                </span>
               </div>
             ))}
           </div>
@@ -84,28 +166,26 @@ const AdminDashboard = () => {
       </div>
 
       {/* ── Modules ── */}
-      <p className="text-[10px] font-bold uppercase tracking-widest mb-4" style={{ color: '#334155' }}>Manage</p>
+      <p className="text-[10px] font-bold uppercase tracking-widest mb-4" style={{ color: '#334155' }}>
+        Manage
+      </p>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <FeaturedCard
-          icon={<UsersSVG/>} title="User Management"
+          icon={<UsersIcon />}
+          title="User Management"
           desc="View all registered users, assign roles across all 4 tiers, and remove accounts when needed."
-          to="/admin/users" stagger="card-stagger-1"
+          to="/admin/users"
+          stagger="card-stagger-1"
         />
         <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <ModuleCard icon={<BuildingSVG/>} title="Resources & Facilities" desc="Oversee all campus rooms, labs, equipment" to="/resources" accentRgb="6,182,212"  stagger="card-stagger-2"/>
-          <ModuleCard icon={<CalSVG/>}      title="All Bookings"          desc="Full visibility of every booking request"    to="/bookings" accentRgb="16,185,129" stagger="card-stagger-3"/>
-          <ModuleCard icon={<TicketSVG/>}   title="Incident Tickets"      desc="Monitor all maintenance and support issues"  to="/tickets"  accentRgb="245,158,11" stagger="card-stagger-4"/>
+          <ModuleCard icon={<BuildingIcon />} title="Resources & Facilities" desc="Oversee all campus rooms, labs, equipment"  to="/resources"       accentRgb="6,182,212"   stagger="card-stagger-2" />
+          <ModuleCard icon={<CalIcon />}      title="All Bookings"           desc="Full visibility of every booking request"   to="/bookings/manage" accentRgb="16,185,129"  stagger="card-stagger-3" />
+          <ModuleCard icon={<TicketIcon />}   title="Incident Tickets"       desc="Monitor all maintenance and support issues" to="/tickets"         accentRgb="245,158,11"  stagger="card-stagger-4" />
         </div>
       </div>
     </Layout>
   )
 }
-
-// ── SVG Icons ────────────────────────────────────────────────────────────────
-const UsersSVG    = () => <svg className="h-6 w-6" style={{ color: 'rgb(168,85,247)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path strokeLinecap="round" strokeLinejoin="round" d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
-const BuildingSVG = () => <svg className="h-5 w-5" style={{ color: 'rgb(6,182,212)' }}  fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-const CalSVG      = () => <svg className="h-5 w-5" style={{ color: 'rgb(16,185,129)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-const TicketSVG   = () => <svg className="h-5 w-5" style={{ color: 'rgb(245,158,11)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/></svg>
 
 export default AdminDashboard

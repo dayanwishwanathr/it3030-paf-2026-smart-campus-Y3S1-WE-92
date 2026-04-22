@@ -1,20 +1,23 @@
 package com.sliit.orbit_backend.security;
 
-import com.sliit.orbit_backend.model.User;
-import com.sliit.orbit_backend.model.enums.AuthProvider;
-import com.sliit.orbit_backend.model.enums.Role;
-import com.sliit.orbit_backend.repository.UserRepository;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
+import java.io.IOException;
+import java.util.Objects;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
+import com.sliit.orbit_backend.model.User;
+import com.sliit.orbit_backend.model.enums.AuthProvider;
+import com.sliit.orbit_backend.model.enums.Role;
+import com.sliit.orbit_backend.repository.UserRepository;
+
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
@@ -23,7 +26,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     private final JwtUtil jwtUtil;
     private final UserRepository userRepository;
 
-    @Value("${app.frontend.url}")
+    @Value("${app.frontend.url:http://localhost:5173}")
     private String frontendUrl;
 
     @Override
@@ -47,7 +50,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                     .provider(AuthProvider.GOOGLE)
                     .profilePicture(picture)
                     .build();
-            return userRepository.save(newUser);
+            return userRepository.save(Objects.requireNonNull(newUser, "OAuth user must not be null"));
         });
 
         // Generate JWT and redirect to frontend with token in URL

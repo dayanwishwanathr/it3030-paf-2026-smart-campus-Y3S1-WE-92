@@ -51,7 +51,7 @@ const Navbar = () => {
   // Nav links per role
   const navLinks = {
     ADMIN:      [{ to: '/admin/dashboard', label: 'Dashboard' }, { to: '/admin/users', label: 'Users' }],
-    MANAGER:    [{ to: '/manager/dashboard', label: 'Dashboard' }, { to: '/resources', label: 'Resources' }, { to: '/bookings', label: 'Bookings' }],
+    MANAGER:    [{ to: '/manager/dashboard', label: 'Dashboard' }, { to: '/resources', label: 'Resources' }, { to: '/bookings/manage', label: 'Bookings' }],
     TECHNICIAN: [{ to: '/dashboard', label: 'Dashboard' }, { to: '/tickets', label: 'Tickets' }],
     USER:       [{ to: '/dashboard', label: 'Dashboard' }, { to: '/resources', label: 'Resources' }, { to: '/bookings', label: 'My Bookings' }, { to: '/tickets', label: 'My Tickets' }],
   }
