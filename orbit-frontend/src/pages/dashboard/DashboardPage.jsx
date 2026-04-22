@@ -108,6 +108,30 @@ const DashboardPage = () => {
 
   return (
     <Layout>
+      {/* ── Verification banner ──────────────────────────────────── */}
+      {!user?.verified && (
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12,
+          background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.28)',
+          borderRadius: 16, padding: '16px 20px', marginBottom: 20,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth={2} style={{ width: 18, height: 18 }}><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+            </div>
+            <div>
+              <p style={{ fontSize: 13, fontWeight: 700, color: '#fbbf24', margin: 0 }}>Account not verified</p>
+              <p style={{ fontSize: 12, color: '#92400e', margin: '2px 0 0' }}>Complete your profile and enter your Student ID to access bookings, tickets, and other features.</p>
+            </div>
+          </div>
+          <Link to="/profile" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '9px 18px', borderRadius: 10, background: 'rgba(245,158,11,0.18)', border: '1px solid rgba(245,158,11,0.4)', color: '#fbbf24', fontWeight: 700, fontSize: 13, textDecoration: 'none', transition: 'all 0.2s', flexShrink: 0 }}
+            onMouseEnter={e => e.currentTarget.style.background='rgba(245,158,11,0.28)'}
+            onMouseLeave={e => e.currentTarget.style.background='rgba(245,158,11,0.18)'}>
+            Verify Now →
+          </Link>
+        </div>
+      )}
+
       {/* ── Hero banner ── */}
       <div className="relative overflow-hidden rounded-2xl p-6 mb-6" style={{ background: `rgba(${cfg.rgb},0.05)`, border: `1px solid rgba(${cfg.rgb},0.15)` }}>
         {/* Dot grid texture */}

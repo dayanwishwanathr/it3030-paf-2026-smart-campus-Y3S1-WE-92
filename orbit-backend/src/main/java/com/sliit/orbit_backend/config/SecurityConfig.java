@@ -49,6 +49,10 @@ public class SecurityConfig {
                 .requestMatchers("/error").permitAll()
                 .requestMatchers("/api/bookings/public/**").permitAll()
 
+                // ── Self-service profile (any authenticated user) ─────────
+                .requestMatchers("/api/users/me").authenticated()
+                .requestMatchers("/api/users/me/profile").authenticated()
+
                 // ── Resources: public read, MANAGER manages ───────────────
                 .requestMatchers(HttpMethod.GET,    "/api/resources/**").permitAll()
                 .requestMatchers(HttpMethod.POST,   "/api/resources/**").hasAnyRole("MANAGER", "ADMIN")
@@ -67,7 +71,7 @@ public class SecurityConfig {
                 // ── Notifications: any logged-in user ─────────────────────
                 .requestMatchers("/api/notifications/**").authenticated()
 
-                // ── Users: ADMIN only ─────────────────────────────────────
+                // ── Users: ADMIN only (except /me routes above) ───────────
                 .requestMatchers("/api/users/**").hasRole("ADMIN")
 
                 // ── Everything else requires login ────────────────────────

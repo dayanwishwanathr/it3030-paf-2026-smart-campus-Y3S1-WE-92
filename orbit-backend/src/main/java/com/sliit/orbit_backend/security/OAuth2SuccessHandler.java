@@ -26,7 +26,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     private final JwtUtil jwtUtil;
     private final UserRepository userRepository;
 
-    @Value("${app.frontend.url:http://localhost:5173}")
+    @Value("${app.frontend.url:http://localhost:5174}")
     private String frontendUrl;
 
     @Override
@@ -37,9 +37,9 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
 
-        String email       = oAuth2User.getAttribute("email");
-        String name        = oAuth2User.getAttribute("name");
-        String picture     = oAuth2User.getAttribute("picture");
+        String email   = oAuth2User.getAttribute("email");
+        String name    = oAuth2User.getAttribute("name");
+        String picture = oAuth2User.getAttribute("picture");
 
         // Save new Google user if first time login, otherwise load existing
         User user = userRepository.findByEmail(email).orElseGet(() -> {
@@ -49,14 +49,17 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                     .role(Role.USER)
                     .provider(AuthProvider.GOOGLE)
                     .profilePicture(picture)
+                    .verified(false)   // must complete profile to verify
                     .build();
             return userRepository.save(Objects.requireNonNull(newUser, "OAuth user must not be null"));
         });
 
-        // Generate JWT and redirect to frontend with token in URL
-        String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
-        String redirectUrl = frontendUrl + "/oauth2/success?token=" + token;
+        // Generate JWT with verified + campusId claims
+        String token = jwtUtil.generateToken(
+                user.getEmail(), user.getRole().name(),
+                user.getCampusId(), user.isVerified());
 
+        String redirectUrl = frontendUrl + "/oauth2/success?token=" + token;
         getRedirectStrategy().sendRedirect(request, response, redirectUrl);
     }
 }

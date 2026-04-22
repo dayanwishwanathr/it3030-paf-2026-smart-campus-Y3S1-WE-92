@@ -3,17 +3,18 @@ import NotificationPanel from '../notifications/NotificationPanel'
 import { useAuth } from '../../context/AuthContext'
 
 const PAGE_TITLES = {
-  '/dashboard':         { label: 'Dashboard',       icon: '⚡' },
-  '/admin/dashboard':   { label: 'Dashboard',       icon: '⚡' },
-  '/manager/dashboard': { label: 'Dashboard',       icon: '⚡' },
-  '/admin/users':       { label: 'User Management', icon: '👥' },
-  '/resources':         { label: 'Resources',       icon: '🏛️'  },
-  '/bookings':          { label: 'Bookings',        icon: '📅' },
-  '/bookings/manage':   { label: 'Manage Bookings', icon: '📅' },
-  '/bookings/new':      { label: 'New Booking',     icon: '➕' },
+  '/dashboard':             { label: 'Dashboard',          icon: '⚡' },
+  '/admin/dashboard':       { label: 'Dashboard',          icon: '⚡' },
+  '/manager/dashboard':     { label: 'Dashboard',          icon: '⚡' },
+  '/admin/users':           { label: 'User Management',    icon: '👥' },
+  '/resources':             { label: 'Resources',          icon: '🏛️'  },
+  '/bookings':              { label: 'Bookings',           icon: '📅' },
+  '/bookings/manage':       { label: 'Manage Bookings',    icon: '📅' },
+  '/bookings/new':          { label: 'New Booking',        icon: '➕' },
   '/bookings/availability': { label: 'Availability Viewer', icon: '📊' },
-  '/tickets':           { label: 'Tickets',         icon: '🎫' },
-  '/tickets/new':       { label: 'New Ticket',      icon: '➕' },
+  '/tickets':               { label: 'Tickets',            icon: '🎫' },
+  '/tickets/new':           { label: 'New Ticket',         icon: '➕' },
+  '/profile':               { label: 'My Profile',         icon: '👤' },
 }
 
 const ROLE_AVATAR = {
@@ -114,29 +115,35 @@ const TopBar = ({ onMenuClick }) => {
 
         <NotificationPanel />
 
-        {/* Avatar pill */}
-        <div
-          className="flex items-center gap-2 rounded-xl px-2.5 py-1.5 transition-all duration-150 cursor-default select-none"
-          style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
+        {/* Avatar pill — links to /profile */}
+        <Link to="/profile"
+          className="flex items-center gap-2 rounded-xl px-2.5 py-1.5 transition-all duration-150 select-none"
+          style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', textDecoration: 'none' }}
+          onMouseEnter={e => { e.currentTarget.style.background='rgba(255,255,255,0.08)'; e.currentTarget.style.borderColor='rgba(6,182,212,0.3)' }}
+          onMouseLeave={e => { e.currentTarget.style.background='rgba(255,255,255,0.04)'; e.currentTarget.style.borderColor='rgba(255,255,255,0.08)' }}
         >
           {user?.profilePicture ? (
-            <img
-              src={user.profilePicture}
-              alt={user.name}
+            <img src={user.profilePicture} alt={user.name}
               className="h-6 w-6 rounded-full object-cover flex-shrink-0"
               style={{ boxShadow: '0 0 0 1.5px rgba(6,182,212,0.5)' }}
             />
           ) : (
-            <div
-              className={`h-6 w-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0 ${ROLE_AVATAR[role]}`}
-            >
+            <div className={`h-6 w-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0 ${ROLE_AVATAR[role]}`}>
               {initials}
             </div>
           )}
-          <span className="hidden sm:block text-[12px] font-semibold max-w-[100px] truncate" style={{ color: '#cbd5e1' }}>
-            {user?.name?.split(' ')[0]}
-          </span>
-        </div>
+          <div className="hidden sm:flex flex-col" style={{ lineHeight: 1.2 }}>
+            <span className="text-[12px] font-semibold max-w-[100px] truncate" style={{ color: '#cbd5e1' }}>
+              {user?.name?.split(' ')[0]}
+            </span>
+            {user?.campusId && (
+              <span className="text-[10px] font-medium" style={{ color: '#475569' }}>{user.campusId}</span>
+            )}
+            {!user?.verified && (
+              <span className="text-[10px] font-bold" style={{ color: '#f59e0b' }}>Unverified</span>
+            )}
+          </div>
+        </Link>
       </div>
     </header>
   )

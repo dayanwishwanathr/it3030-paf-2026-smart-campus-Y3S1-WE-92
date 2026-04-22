@@ -13,5 +13,7 @@ public interface UserRepository extends MongoRepository<User, String> {
 
     boolean existsByEmail(String email);
 
+    Optional<User> findByCampusId(String campusId);
+
     java.util.List<User> findByRoleIn(java.util.List<com.sliit.orbit_backend.model.enums.Role> roles);
 }
