@@ -28,6 +28,14 @@ export const ticketApi = {
   assignTechnician: (id, assignedTo) =>
     axiosInstance.patch(`/tickets/${id}/assign`, { assignedTo }).then(r => r.data),
 
+  /** TECHNICIAN self-assigns an OPEN ticket. */
+  claimTicket: (id) =>
+    axiosInstance.patch(`/tickets/${id}/claim`).then(r => r.data),
+
+  /** Get list of all technician users (ADMIN/MANAGER). */
+  getTechnicians: () =>
+    axiosInstance.get('/tickets/technicians').then(r => r.data),
+
   /** Delete a ticket (owner or ADMIN). */
   deleteTicket: (id) =>
     axiosInstance.delete(`/tickets/${id}`).then(r => r.data),

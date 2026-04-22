@@ -29,6 +29,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * REST Controller for Incident Ticket Management (Module C).
@@ -36,10 +37,12 @@ import java.util.Map;
  *
  * Endpoints:
  *   GET    /api/tickets                  – list tickets (role-based)
+ *   GET    /api/tickets/technicians      – list TECHNICIAN users (ADMIN/MANAGER)
  *   GET    /api/tickets/{id}             – get ticket detail
  *   POST   /api/tickets                  – create ticket
  *   PATCH  /api/tickets/{id}/status      – update status
- *   PATCH  /api/tickets/{id}/assign      – assign technician
+ *   PATCH  /api/tickets/{id}/assign      – assign technician (ADMIN/MANAGER)
+ *   PATCH  /api/tickets/{id}/claim       – technician self-assigns
  *   POST   /api/tickets/{id}/comments    – add comment
  *   PUT    /api/tickets/comments/{cid}   – edit comment
  *   DELETE /api/tickets/comments/{cid}   – delete comment
@@ -65,6 +68,21 @@ public class TicketController {
         String userId = getUserId(authentication);
         String role   = getRole(authentication);
         return ResponseEntity.ok(ticketService.getTickets(userId, role, status));
+    }
+
+    /**
+     * Returns a list of all TECHNICIAN-role users.
+     * Used by the admin Assign Technician dropdown on the ticket detail page.
+     */
+    @GetMapping("/technicians")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    public ResponseEntity<List<Map<String, String>>> getTechnicians() {
+        List<Map<String, String>> technicians = userRepository.findAll().stream()
+                .filter(u -> u.getRole() != null &&
+                        u.getRole().name().equals("TECHNICIAN"))
+                .map(u -> Map.of("id", u.getId(), "name", u.getName(), "email", u.getEmail()))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(technicians);
     }
 
     @GetMapping("/{id}")
@@ -108,6 +126,23 @@ public class TicketController {
         String userId = getUserId(authentication);
         String role   = getRole(authentication);
         return ResponseEntity.ok(ticketService.assignTechnician(id, request.getAssignedTo(), userId, role));
+    }
+
+    /**
+     * TECHNICIAN claims an OPEN ticket for themselves.
+     * Advances status to IN_PROGRESS automatically.
+     */
+    @PatchMapping("/{id}/claim")
+    @PreAuthorize("hasRole('TECHNICIAN')")
+    public ResponseEntity<?> claimTicket(
+            @PathVariable String id,
+            Authentication authentication) {
+        try {
+            String userId = getUserId(authentication);
+            return ResponseEntity.ok(ticketService.claimTicket(id, userId));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 
     // ── Comments ──────────────────────────────────────────────────────────────

@@ -246,6 +246,12 @@ const TicketDetailsPage = () => {
   const [commentBody, setCommentBody] = useState('')
   const [submittingComment, setSubmittingComment] = useState(false)
   const [error, setError] = useState('')
+  // Assign panel state (ADMIN/MANAGER)
+  const [technicians, setTechnicians] = useState([])
+  const [assigningTo, setAssigningTo] = useState('')
+  const [assigning, setAssigning] = useState(false)
+  // Claim state (TECHNICIAN)
+  const [claiming, setClaiming] = useState(false)
 
   const fetchTicket = async () => {
     try {
@@ -260,12 +266,44 @@ const TicketDetailsPage = () => {
 
   useEffect(() => { fetchTicket() }, [id])
 
+  // Load technicians list for admin/manager assign panel
+  useEffect(() => {
+    if (role === 'ADMIN' || role === 'MANAGER') {
+      ticketApi.getTechnicians().then(setTechnicians).catch(() => {})
+    }
+  }, [role])
+
   const handleAction = async (status, extra) => {
     try {
       await ticketApi.updateStatus(id, { status, ...extra })
       fetchTicket()
     } catch (e) {
       setError(e.response?.data?.error || 'Action failed.')
+    }
+  }
+
+  const handleClaim = async () => {
+    setClaiming(true)
+    try {
+      await ticketApi.claimTicket(id)
+      fetchTicket()
+    } catch (e) {
+      setError(e.response?.data?.error || 'Failed to claim ticket.')
+    } finally {
+      setClaiming(false)
+    }
+  }
+
+  const handleAssign = async () => {
+    if (!assigningTo) return
+    setAssigning(true)
+    try {
+      await ticketApi.assignTechnician(id, assigningTo)
+      fetchTicket()
+    } catch (e) {
+      setError(e.response?.data?.error || 'Failed to assign technician.')
+    } finally {
+      setAssigning(false)
     }
   }
 
@@ -416,6 +454,85 @@ const TicketDetailsPage = () => {
                 </a>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* ── Claim Ticket (TECHNICIAN on OPEN unassigned tickets) ── */}
+        {role === 'TECHNICIAN' &&
+          ticket.status === 'OPEN' &&
+          !ticket.assignedTo && (
+          <div style={{
+            background: 'rgba(245,158,11,0.05)',
+            border: '1px solid rgba(245,158,11,0.25)',
+            borderRadius: 12, padding: 20, marginTop: 20,
+          }}>
+            <p style={{ fontSize: 13, fontWeight: 600, color: '#fcd34d', marginBottom: 8,
+              textTransform: 'uppercase', letterSpacing: '0.05em' }}>Available to Claim</p>
+            <p style={{ fontSize: 13, color: '#94a3b8', marginBottom: 14, lineHeight: 1.5 }}>
+              This ticket is unassigned and open. You can claim it to take responsibility and begin working on it.
+            </p>
+            <button
+              onClick={handleClaim}
+              disabled={claiming}
+              style={{
+                padding: '9px 22px', borderRadius: 8, fontSize: 13, fontWeight: 700,
+                background: claiming ? 'rgba(245,158,11,0.05)' : 'rgba(245,158,11,0.12)',
+                border: '1px solid rgba(245,158,11,0.4)',
+                color: '#fcd34d', cursor: claiming ? 'default' : 'pointer',
+              }}
+            >
+              {claiming ? 'Claiming…' : '🔧 Claim Ticket'}
+            </button>
+          </div>
+        )}
+
+        {/* ── Assign Technician (ADMIN/MANAGER) ── */}
+        {(role === 'ADMIN' || role === 'MANAGER') &&
+          ['OPEN', 'IN_PROGRESS'].includes(ticket.status) && (
+          <div style={{
+            background: '#131929', border: '1px solid #1e2d45',
+            borderRadius: 12, padding: 20, marginTop: 20,
+          }}>
+            <p style={{ fontSize: 13, fontWeight: 600, color: '#94a3b8', marginBottom: 12,
+              textTransform: 'uppercase', letterSpacing: '0.05em' }}>Assign Technician</p>
+            {ticket.assignedTo && (
+              <p style={{ fontSize: 12, color: '#f59e0b', marginBottom: 10 }}>
+                Currently assigned to: <strong>{ticket.assignedToName}</strong>
+              </p>
+            )}
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+              <select
+                value={assigningTo}
+                onChange={e => setAssigningTo(e.target.value)}
+                style={{
+                  background: 'rgba(255,255,255,0.04)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: 8, color: '#f1f5f9',
+                  fontSize: 13, padding: '8px 12px',
+                  cursor: 'pointer', minWidth: 200,
+                }}
+              >
+                <option value="">— Select a technician —</option>
+                {technicians.map(t => (
+                  <option key={t.id} value={t.id}>{t.name} ({t.email})</option>
+                ))}
+              </select>
+              <button
+                onClick={handleAssign}
+                disabled={assigning || !assigningTo}
+                style={{
+                  padding: '8px 20px', borderRadius: 8, fontSize: 13, fontWeight: 600,
+                  background: assigning || !assigningTo ? 'rgba(6,182,212,0.05)' : 'rgba(6,182,212,0.1)',
+                  border: '1px solid rgba(6,182,212,0.3)',
+                  color: '#22d3ee', cursor: assigning || !assigningTo ? 'default' : 'pointer',
+                }}
+              >
+                {assigning ? 'Assigning…' : 'Assign'}
+              </button>
+            </div>
+            {technicians.length === 0 && (
+              <p style={{ fontSize: 12, color: '#475569', marginTop: 8 }}>No technician users found in the system.</p>
+            )}
           </div>
         )}
 

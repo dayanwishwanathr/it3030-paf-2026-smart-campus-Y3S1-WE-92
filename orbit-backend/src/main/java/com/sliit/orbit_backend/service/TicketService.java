@@ -50,7 +50,8 @@ public class TicketService {
     /**
      * Returns tickets visible to the caller based on their role:
      * - USER       → their own tickets
-     * - TECHNICIAN → tickets assigned to them
+     * - TECHNICIAN → ALL tickets (so they can see OPEN ones to claim),
+     *                with optional status filter
      * - ADMIN/MANAGER → all tickets, with optional status filter
      */
     public List<TicketResponse> getTickets(String callerId, String callerRole,
@@ -63,11 +64,7 @@ public class TicketService {
         List<Ticket> tickets;
 
         switch (callerRole) {
-            case "TECHNICIAN" -> tickets = (status != null)
-                    ? ticketRepository.findByAssignedToAndStatusOrderByCreatedAtDesc(callerId, status)
-                    : ticketRepository.findByAssignedToOrderByCreatedAtDesc(callerId);
-
-            case "ADMIN", "MANAGER" -> tickets = (status != null)
+            case "TECHNICIAN", "ADMIN", "MANAGER" -> tickets = (status != null)
                     ? ticketRepository.findByStatusOrderByCreatedAtDesc(status)
                     : ticketRepository.findAll().stream()
                         .sorted((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()))
@@ -79,21 +76,50 @@ public class TicketService {
                     : ticketRepository.findByCreatedByOrderByCreatedAtDesc(callerId);
         }
 
-        return tickets.stream().map(t -> toResponse(t, true)).collect(Collectors.toList());
+        return tickets.stream().map(t -> toResponse(t, false)).collect(Collectors.toList());
     }
 
     /** Returns full ticket detail (including comments and attachments). */
     public TicketResponse getTicketById(String ticketId, String callerId, String callerRole) {
         Ticket ticket = findById(ticketId);
         boolean isOwner      = ticket.getCreatedBy().equals(callerId);
-        boolean isAssignee   = callerId.equals(ticket.getAssignedTo());
         boolean isPrivileged = "ADMIN".equals(callerRole) || "MANAGER".equals(callerRole);
-        boolean isTech       = "TECHNICIAN".equals(callerRole) && isAssignee;
+        // Any TECHNICIAN can view any ticket (so they can claim OPEN ones)
+        boolean isTech       = "TECHNICIAN".equals(callerRole);
 
         if (!isOwner && !isPrivileged && !isTech) {
             throw new RuntimeException("Access denied");
         }
         return toResponse(ticket, true);
+    }
+
+    /**
+     * TECHNICIAN self-assigns: claims an OPEN ticket.
+     * Sets assignedTo = callerId and advances status to IN_PROGRESS.
+     */
+    public TicketResponse claimTicket(String ticketId, String technicianId) {
+        Ticket ticket = findById(ticketId);
+
+        if (ticket.getStatus() != TicketStatus.OPEN) {
+            throw new IllegalStateException("Only OPEN tickets can be claimed");
+        }
+        if (ticket.getAssignedTo() != null) {
+            throw new IllegalStateException("Ticket is already assigned to another technician");
+        }
+
+        ticket.setAssignedTo(technicianId);
+        ticket.setStatus(TicketStatus.IN_PROGRESS);
+        Ticket saved = ticketRepository.save(ticket);
+
+        // Notify creator
+        notificationService.createNotification(
+                ticket.getCreatedBy(),
+                "TICKET_STATUS_CHANGED",
+                "Your ticket \"" + ticket.getTitle() + "\" has been picked up by a technician.",
+                ticket.getId()
+        );
+
+        return toResponse(saved, false);
     }
 
     // ── Create ────────────────────────────────────────────────────────────────
