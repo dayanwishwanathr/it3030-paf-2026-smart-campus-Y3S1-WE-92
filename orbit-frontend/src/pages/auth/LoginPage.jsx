@@ -110,10 +110,28 @@ const LoginPage = () => {
   const onSubmit = async e => {
     e.preventDefault(); setLoading(true); setError('')
     try {
+      console.log('🔐 Attempting login...', form.email)
+      console.log('📍 Backend URL: http://localhost:8080')
+      
       const { data } = await axiosInstance.post('/auth/login', form)
+      
+      console.log('✅ Login successful')
       await login(data.token)
     } catch (err) {
-      setError(err.response?.data?.error || 'Invalid email or password.')
+      console.error('❌ Login failed:', {
+        status: err.response?.status,
+        message: err.response?.data?.error,
+        fullError: err.message,
+        backendReachable: err.response ? 'Yes' : 'No (502 means backend not running)',
+      })
+      
+      if (err.response?.status === 502) {
+        setError('Backend server not responding. Make sure backend is running on localhost:8080')
+      } else if (err.response?.status === 401) {
+        setError('Invalid email or password.')
+      } else {
+        setError(err.response?.data?.error || 'Connection error. Please check backend server.')
+      }
     } finally { setLoading(false) }
   }
 
@@ -164,7 +182,9 @@ const LoginPage = () => {
       >
 
         {/* ══ LEFT PANEL ══════════════════════════════════════════════════════ */}
-        <div style={{
+        <div 
+          className="hide-on-mobile"
+          style={{
           width: '50%',
           display: 'flex', flexDirection: 'column',
           position: 'relative', overflow: 'hidden',
@@ -237,7 +257,9 @@ const LoginPage = () => {
         {/* ══ END LEFT ══ */}
 
         {/* ══ RIGHT PANEL ═════════════════════════════════════════════════════ */}
-        <div style={{
+        <div 
+          className="w-full-on-mobile"
+          style={{
           flex: 1,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           padding: '36px 44px',

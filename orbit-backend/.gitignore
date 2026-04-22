@@ -35,3 +35,6 @@ build/
 ### Secrets - never commit real credentials ###
 src/main/resources/application.properties
 src/main/resources/application-prod.properties
+
+### Uploads ###
+uploads/
