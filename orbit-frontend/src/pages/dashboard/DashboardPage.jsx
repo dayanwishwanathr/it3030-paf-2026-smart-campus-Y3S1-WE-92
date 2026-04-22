@@ -1,11 +1,30 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import Layout from '../../components/layout/Layout'
 import { bookingApi } from '../../api/bookingApi'
 
+// ── Inline SVG icons ──────────────────────────────────────────────────────────
+const BookIcon = () => (
+  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} style={{ color: '#06b6d4' }}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+  </svg>
+)
+
+const TicketIcon = () => (
+  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} style={{ color: '#f59e0b' }}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
+  </svg>
+)
+
+const BuildingIcon = () => (
+  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} style={{ color: '#10b981' }}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+  </svg>
+)
+
 // ── Stat chip ────────────────────────────────────────────────────────────────
-const StatChip = ({ label, value, color, border, glow }) => (
+const StatChip = ({ label, value, color }) => (
   <div className="flex flex-col items-center rounded-2xl px-4 py-3 min-w-[72px]"
     style={{ background: `rgba(${color},0.08)`, border: `1px solid rgba(${color},0.22)` }}>
     <span className="text-2xl font-black" style={{ color: `rgb(${color})`, textShadow: `0 0 12px rgba(${color},0.5)` }}>
@@ -63,10 +82,10 @@ const ActionCard = ({ icon, title, desc, to, accentRgb, stagger }) => (
 
 // ── Role config ───────────────────────────────────────────────────────────────
 const ROLE_CFG = {
-  USER: { color: 'cyan', label: '👤 USER' },
-  TECHNICIAN: { color: 'amber', label: '🔧 TECHNICIAN' },
-  ADMIN: { color: 'purple', label: '⚡ ADMIN' },
-  MANAGER: { color: 'green', label: '🏗️ MANAGER' },
+  USER:       { color: 'cyan',   label: '👤 USER',       rgb: '6,182,212',   heroClass: 'hero-cyan'    },
+  TECHNICIAN: { color: 'amber',  label: '🔧 TECHNICIAN', rgb: '245,158,11',  heroClass: 'hero-cyan'    },
+  ADMIN:      { color: 'purple', label: '⚡ ADMIN',      rgb: '168,85,247',  heroClass: 'hero-purple'  },
+  MANAGER:    { color: 'green',  label: '🏗️ MANAGER',   rgb: '16,185,129',  heroClass: 'hero-emerald' },
 }
 
 const DashboardPage = () => {
@@ -131,23 +150,23 @@ const DashboardPage = () => {
           <ActionCard
             icon={<BookIcon />}
             title="Book a Resource"
-            description="Reserve campus rooms, labs, and equipment 24⁄7"
-            onClick={() => navigate('/bookings/new')}
-            accentColor={cfg.color}
+            desc="Reserve campus rooms, labs, and equipment 24⁄7"
+            to="/bookings/new"
+            accentRgb={cfg.rgb}
           />
           <ActionCard
             icon={<TicketIcon />}
             title="Report an Issue"
-            description="Submit a maintenance or incident ticket"
-            onClick={() => navigate('/tickets')}
-            accentColor={cfg.color}
+            desc="Submit a maintenance or incident ticket"
+            to="/tickets"
+            accentRgb={cfg.rgb}
           />
           <ActionCard
             icon={<BuildingIcon />}
             title="Browse Resources"
-            description="Explore all available campus facilities"
-            onClick={() => navigate('/resources')}
-            accentColor={cfg.color}
+            desc="Explore all available campus facilities"
+            to="/resources"
+            accentRgb={cfg.rgb}
           />
         </div>
       </div>
