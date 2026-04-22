@@ -40,14 +40,21 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            // IF_REQUIRED: sessions are only created for OAuth2 state storage.
+            // API calls remain stateless (JWT-based, no session cookie used).
             .sessionManagement(session ->
-                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
             .authorizeHttpRequests(auth -> auth
 
                 // ── Public ────────────────────────────────────────────────
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/error").permitAll()
                 .requestMatchers("/api/bookings/public/**").permitAll()
+
+                // ── OAuth2 flow — must be permit all or Spring can't process callback
+                .requestMatchers("/oauth2/**").permitAll()
+                .requestMatchers("/login/oauth2/**").permitAll()
+                .requestMatchers("/login/**").permitAll()
 
                 // ── Self-service profile (any authenticated user) ─────────
                 .requestMatchers("/api/users/me").authenticated()
@@ -64,7 +71,6 @@ public class SecurityConfig {
                 .requestMatchers("/api/bookings/**").hasAnyRole("USER", "MANAGER", "ADMIN")
 
                 // ── Tickets: TECHNICIAN + ADMIN manage, USER creates ──────
-                // Attachment download is public so <img> tags work in browser
                 .requestMatchers(HttpMethod.GET, "/api/tickets/attachments/**").permitAll()
                 .requestMatchers("/api/tickets/**").hasAnyRole("USER", "TECHNICIAN", "MANAGER", "ADMIN")
 
