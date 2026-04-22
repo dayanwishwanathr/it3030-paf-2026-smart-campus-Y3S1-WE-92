@@ -38,15 +38,11 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http, OAuth2SuccessHandler oAuth2SuccessHandler)
             throws Exception {
         http
-                .csrf(csrf -> csrf.disable())
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                // STATELESS: Spring Security never loads/saves SecurityContext from the
-                // HTTP session, so the OAuth2 session auth can't override our JWT filter.
-                // The OAuth2 handshake still works — it stores its state via a separate
-                // session attribute (HttpSessionOAuth2AuthorizationRequestRepository),
-                // which is independent of Spring Security's SecurityContextRepository.
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
+            .csrf(csrf -> csrf.disable())
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            .sessionManagement(session ->
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(auth -> auth
 
                 // ── Public ────────────────────────────────────────────────
                 .requestMatchers("/api/auth/**").permitAll()
@@ -60,19 +56,19 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.PATCH,  "/api/resources/**").hasAnyRole("MANAGER", "ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/resources/**").hasAnyRole("MANAGER", "ADMIN")
 
-                        // ── Bookings: MANAGER approves/rejects, USER creates ──────
-                        .requestMatchers("/api/bookings/**").hasAnyRole("USER", "MANAGER", "ADMIN")
+                // ── Bookings: MANAGER approves/rejects, USER creates ──────
+                .requestMatchers("/api/bookings/**").hasAnyRole("USER", "MANAGER", "ADMIN")
 
                 // ── Tickets: TECHNICIAN + ADMIN manage, USER creates ──────
                 // Attachment download is public so <img> tags work in browser
                 .requestMatchers(HttpMethod.GET, "/api/tickets/attachments/**").permitAll()
                 .requestMatchers("/api/tickets/**").hasAnyRole("USER", "TECHNICIAN", "MANAGER", "ADMIN")
 
-                        // ── Notifications: any logged-in user ─────────────────────
-                        .requestMatchers("/api/notifications/**").authenticated()
+                // ── Notifications: any logged-in user ─────────────────────
+                .requestMatchers("/api/notifications/**").authenticated()
 
-                        // ── Users: ADMIN only ─────────────────────────────────────
-                        .requestMatchers("/api/users/**").hasRole("ADMIN")
+                // ── Users: ADMIN only ─────────────────────────────────────
+                .requestMatchers("/api/users/**").hasRole("ADMIN")
 
                 // ── Everything else requires login ────────────────────────
                 .anyRequest().authenticated()
