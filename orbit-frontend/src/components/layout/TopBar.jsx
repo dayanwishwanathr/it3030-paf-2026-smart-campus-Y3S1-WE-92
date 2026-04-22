@@ -1,19 +1,21 @@
+import { useState, useRef, useEffect } from 'react'
 import { useLocation, useNavigate, Link } from 'react-router-dom'
 import NotificationPanel from '../notifications/NotificationPanel'
 import { useAuth } from '../../context/AuthContext'
 
 const PAGE_TITLES = {
-  '/dashboard':         { label: 'Dashboard',       icon: '⚡' },
-  '/admin/dashboard':   { label: 'Dashboard',       icon: '⚡' },
-  '/manager/dashboard': { label: 'Dashboard',       icon: '⚡' },
-  '/admin/users':       { label: 'User Management', icon: '👥' },
-  '/resources':         { label: 'Resources',       icon: '🏛️'  },
-  '/bookings':          { label: 'Bookings',        icon: '📅' },
-  '/bookings/manage':   { label: 'Manage Bookings', icon: '📅' },
-  '/bookings/new':      { label: 'New Booking',     icon: '➕' },
+  '/dashboard':             { label: 'Dashboard',          icon: '⚡' },
+  '/admin/dashboard':       { label: 'Dashboard',          icon: '⚡' },
+  '/manager/dashboard':     { label: 'Dashboard',          icon: '⚡' },
+  '/admin/users':           { label: 'User Management',    icon: '👥' },
+  '/resources':             { label: 'Resources',          icon: '🏛️'  },
+  '/bookings':              { label: 'Bookings',           icon: '📅' },
+  '/bookings/manage':       { label: 'Manage Bookings',    icon: '📅' },
+  '/bookings/new':          { label: 'New Booking',        icon: '➕' },
   '/bookings/availability': { label: 'Availability Viewer', icon: '📊' },
-  '/tickets':           { label: 'Tickets',         icon: '🎫' },
-  '/tickets/new':       { label: 'New Ticket',      icon: '➕' },
+  '/tickets':               { label: 'Tickets',            icon: '🎫' },
+  '/tickets/new':           { label: 'New Ticket',         icon: '➕' },
+  '/profile':               { label: 'My Profile',         icon: '👤' },
 }
 
 const ROLE_AVATAR = {
@@ -24,12 +26,14 @@ const ROLE_AVATAR = {
 }
 
 const TopBar = ({ onMenuClick }) => {
-  const navigate  = useNavigate()
-  const location  = useLocation()
-  const { user }  = useAuth()
+  const navigate       = useNavigate()
+  const location       = useLocation()
+  const { user, logout } = useAuth()
+  const [open, setOpen] = useState(false)
+  const dropRef        = useRef(null)
 
   const role     = user?.role ?? 'USER'
-  const initials = user?.name?.charAt(0).toUpperCase() ?? '?'
+  const initials = (user?.name || 'U').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
   const page     = PAGE_TITLES[location.pathname]
   const title    = page?.label ?? 'SLIIT Orbit'
   const icon     = page?.icon  ?? '🛸'
@@ -38,21 +42,32 @@ const TopBar = ({ onMenuClick }) => {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
   })
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handler = (e) => { if (dropRef.current && !dropRef.current.contains(e.target)) setOpen(false) }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  const handleLogout = () => {
+    setOpen(false)
+    logout()
+    navigate('/login')
+  }
+
   return (
-    <header
-      style={{
-        position: 'sticky', top: 0, zIndex: 30,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0 32px', // Add horizontal padding explicitly
-        height: '64px',
-        background: 'rgba(5,5,8,0.88)',
-        backdropFilter: 'blur(20px)',
-        borderBottom: '1px solid #1e2d45',
-      }}
-    >
+    <header style={{
+      position: 'sticky', top: 0, zIndex: 30,
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      padding: '0 32px',
+      height: '64px',
+      background: 'rgba(5,5,8,0.88)',
+      backdropFilter: 'blur(20px)',
+      borderBottom: '1px solid #1e2d45',
+    }}>
       {/* ── Left: page title + date ── */}
       <div className="flex items-center gap-3 min-w-0">
-        <button 
+        <button
           onClick={onMenuClick}
           className="show-on-mobile"
           style={{ background: 'transparent', border: 'none', color: '#f1f5f9', cursor: 'pointer', padding: '4px', marginRight: '4px' }}
@@ -73,39 +88,21 @@ const TopBar = ({ onMenuClick }) => {
         </span>
       </div>
 
-      {/* ── Right: availability shortcut + notifications + avatar chip ── */}
+      {/* ── Right: availability shortcut + notifications + avatar dropdown ── */}
       <div className="flex items-center gap-2 flex-shrink-0">
-        {/* Availability Viewer quick-access icon */}
+        {/* Availability Viewer quick-access */}
         <button
           onClick={() => navigate('/bookings/availability')}
           title="Check Resource Availability"
           style={{
-            width: '34px', height: '34px',
-            borderRadius: '8px',
-            background: location.pathname === '/bookings/availability'
-              ? 'rgba(6,182,212,0.15)'
-              : 'rgba(255,255,255,0.04)',
-            border: location.pathname === '/bookings/availability'
-              ? '1px solid rgba(6,182,212,0.5)'
-              : '1px solid rgba(255,255,255,0.08)',
+            width: '34px', height: '34px', borderRadius: '8px',
+            background: location.pathname === '/bookings/availability' ? 'rgba(6,182,212,0.15)' : 'rgba(255,255,255,0.04)',
+            border: location.pathname === '/bookings/availability' ? '1px solid rgba(6,182,212,0.5)' : '1px solid rgba(255,255,255,0.08)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer',
-            transition: 'all 0.2s',
-            flexShrink: 0,
-            boxShadow: location.pathname === '/bookings/availability'
-              ? '0 0 10px rgba(6,182,212,0.2)'
-              : 'none',
+            cursor: 'pointer', transition: 'all 0.2s', flexShrink: 0,
           }}
-          onMouseEnter={e => {
-            e.currentTarget.style.background = 'rgba(6,182,212,0.12)'
-            e.currentTarget.style.borderColor = 'rgba(6,182,212,0.4)'
-          }}
-          onMouseLeave={e => {
-            if (location.pathname !== '/bookings/availability') {
-              e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
-              e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'
-            }
-          }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(6,182,212,0.12)'; e.currentTarget.style.borderColor = 'rgba(6,182,212,0.4)' }}
+          onMouseLeave={e => { if (location.pathname !== '/bookings/availability') { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)' } }}
         >
           <svg style={{ width: '15px', height: '15px', color: '#06b6d4' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -114,28 +111,95 @@ const TopBar = ({ onMenuClick }) => {
 
         <NotificationPanel />
 
-        {/* Avatar pill */}
-        <div
-          className="flex items-center gap-2 rounded-xl px-2.5 py-1.5 transition-all duration-150 cursor-default select-none"
-          style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
-        >
-          {user?.profilePicture ? (
-            <img
-              src={user.profilePicture}
-              alt={user.name}
-              className="h-6 w-6 rounded-full object-cover flex-shrink-0"
-              style={{ boxShadow: '0 0 0 1.5px rgba(6,182,212,0.5)' }}
-            />
-          ) : (
-            <div
-              className={`h-6 w-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0 ${ROLE_AVATAR[role]}`}
-            >
-              {initials}
+        {/* ── Avatar dropdown ── */}
+        <div ref={dropRef} style={{ position: 'relative' }}>
+          {/* Avatar button — avatar only, no text */}
+          <button
+            onClick={() => setOpen(v => !v)}
+            style={{
+              width: 36, height: 36, borderRadius: '50%', padding: 0,
+              border: open ? '2px solid rgba(6,182,212,0.7)' : '2px solid rgba(255,255,255,0.12)',
+              background: 'transparent', cursor: 'pointer', flexShrink: 0,
+              boxShadow: open ? '0 0 0 3px rgba(6,182,212,0.15)' : 'none',
+              transition: 'all 0.2s', overflow: 'hidden',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(6,182,212,0.5)' }}
+            onMouseLeave={e => { if (!open) e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)' }}
+          >
+            {user?.profilePicture ? (
+              <img src={user.profilePicture} alt={user.name}
+                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+              />
+            ) : (
+              <div className={`h-full w-full flex items-center justify-center text-[11px] font-bold text-white ${ROLE_AVATAR[role]}`}>
+                {initials}
+              </div>
+            )}
+          </button>
+
+          {/* Dropdown menu */}
+          {open && (
+            <div style={{
+              position: 'absolute', top: 'calc(100% + 10px)', right: 0,
+              width: 200, borderRadius: 14, overflow: 'hidden',
+              background: '#0e0e1c', border: '1px solid rgba(255,255,255,0.10)',
+              boxShadow: '0 16px 48px rgba(0,0,0,0.7), 0 0 0 1px rgba(6,182,212,0.06)',
+              animation: 'fadeInDown 0.15s ease',
+              zIndex: 50,
+            }}>
+              {/* User info header */}
+              <div style={{ padding: '14px 16px 12px', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+                <p style={{ fontSize: 13, fontWeight: 700, color: '#f1f5f9', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.name}</p>
+                <p style={{ fontSize: 11, color: '#475569', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.email}</p>
+                {user?.verified
+                  ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 6, fontSize: 10, fontWeight: 700, color: '#34d399' }}>
+                      <svg viewBox="0 0 20 20" fill="currentColor" style={{ width: 11, height: 11 }}><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/></svg>
+                      Verified · {user.campusId}
+                    </span>
+                  : <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 6, fontSize: 10, fontWeight: 700, color: '#f59e0b' }}>
+                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#f59e0b', display: 'inline-block' }}/>
+                      Not Verified
+                    </span>
+                }
+              </div>
+
+              {/* Menu items */}
+              <div style={{ padding: '6px' }}>
+                <Link to="/profile" onClick={() => setOpen(false)} style={{
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  padding: '9px 10px', borderRadius: 9,
+                  fontSize: 13, fontWeight: 600, color: '#cbd5e1',
+                  textDecoration: 'none', transition: 'all 0.15s',
+                }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = '#f1f5f9' }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#cbd5e1' }}
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} style={{ width: 15, height: 15, color: '#06b6d4', flexShrink: 0 }}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                  </svg>
+                  My Profile
+                </Link>
+
+                <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', margin: '4px 0' }} />
+
+                <button onClick={handleLogout} style={{
+                  display: 'flex', alignItems: 'center', gap: 10, width: '100%',
+                  padding: '9px 10px', borderRadius: 9, border: 'none',
+                  fontSize: 13, fontWeight: 600, color: '#f87171',
+                  background: 'transparent', cursor: 'pointer', textAlign: 'left',
+                  fontFamily: "'Inter',sans-serif", transition: 'all 0.15s',
+                }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.08)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} style={{ width: 15, height: 15, flexShrink: 0 }}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                  </svg>
+                  Sign Out
+                </button>
+              </div>
             </div>
           )}
-          <span className="hidden sm:block text-[12px] font-semibold max-w-[100px] truncate" style={{ color: '#cbd5e1' }}>
-            {user?.name?.split(' ')[0]}
-          </span>
         </div>
       </div>
     </header>

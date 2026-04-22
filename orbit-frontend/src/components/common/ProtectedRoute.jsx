@@ -1,20 +1,27 @@
 import { Navigate } from 'react-router-dom'
-import { useAuth } from '../../context/AuthContext'
+import { useAuth }   from '../../context/AuthContext'
 import LoadingSpinner from './LoadingSpinner'
 
-// allowedRoles: optional array e.g. ['ADMIN'] or ['ADMIN','TECHNICIAN']
-// If not passed, any logged-in user can access the route
-const ProtectedRoute = ({ children, allowedRoles }) => {
+/**
+ * allowedRoles    — optional array e.g. ['ADMIN'] or ['ADMIN','TECHNICIAN']
+ * requireVerified — if true, unverified users are redirected to /dashboard
+ *                   (they can still see the dashboard but not the guarded feature)
+ */
+const ProtectedRoute = ({ children, allowedRoles, requireVerified }) => {
   const { user, loading } = useAuth()
 
-  // Still checking auth — show spinner
   if (loading) return <LoadingSpinner />
 
-  // Not logged in — redirect to login
+  // Not logged in — send to login
   if (!user) return <Navigate to="/login" replace />
 
-  // Logged in but wrong role — redirect to their dashboard
+  // Wrong role — send to their own dashboard
   if (allowedRoles && !allowedRoles.includes(user.role)) {
+    return <Navigate to="/dashboard" replace />
+  }
+
+  // Feature requires verified account — send back to dashboard with banner
+  if (requireVerified && !user.verified) {
     return <Navigate to="/dashboard" replace />
   }
 

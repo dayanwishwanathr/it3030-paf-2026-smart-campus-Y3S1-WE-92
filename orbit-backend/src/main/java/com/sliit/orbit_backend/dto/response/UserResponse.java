@@ -20,4 +20,9 @@ public class UserResponse {
     private String provider;
     private String profilePicture;
     private LocalDateTime createdAt;
+
+    // ── Campus verification ────────────────────────────────────────────────────
+    private String  campusId;
+    private String  faculty;
+    private boolean verified;
 }

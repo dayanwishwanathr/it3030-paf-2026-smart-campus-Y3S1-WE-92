@@ -2,6 +2,7 @@ package com.sliit.orbit_backend.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import com.sliit.orbit_backend.security.JwtAuthFilter;
+import com.sliit.orbit_backend.security.OAuth2SuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,7 +21,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.Arrays;
 import java.util.List;
 
 @Configuration
@@ -35,18 +35,30 @@ public class SecurityConfig {
     private String allowedOriginsRaw;
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, OAuth2SuccessHandler oAuth2SuccessHandler)
+            throws Exception {
         http
             .csrf(csrf -> csrf.disable())
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            // IF_REQUIRED: sessions are only created for OAuth2 state storage.
+            // API calls remain stateless (JWT-based, no session cookie used).
             .sessionManagement(session ->
-                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
             .authorizeHttpRequests(auth -> auth
 
                 // ── Public ────────────────────────────────────────────────
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/error").permitAll()
                 .requestMatchers("/api/bookings/public/**").permitAll()
+
+                // ── OAuth2 flow — must be permit all or Spring can't process callback
+                .requestMatchers("/oauth2/**").permitAll()
+                .requestMatchers("/login/oauth2/**").permitAll()
+                .requestMatchers("/login/**").permitAll()
+
+                // ── Self-service profile (any authenticated user) ─────────
+                .requestMatchers("/api/users/me").authenticated()
+                .requestMatchers("/api/users/me/profile").authenticated()
 
                 // ── Resources: public read, MANAGER manages ───────────────
                 .requestMatchers(HttpMethod.GET,    "/api/resources/**").permitAll()
@@ -59,14 +71,13 @@ public class SecurityConfig {
                 .requestMatchers("/api/bookings/**").hasAnyRole("USER", "MANAGER", "ADMIN")
 
                 // ── Tickets: TECHNICIAN + ADMIN manage, USER creates ──────
-                // Attachment download is public so <img> tags work in browser
                 .requestMatchers(HttpMethod.GET, "/api/tickets/attachments/**").permitAll()
                 .requestMatchers("/api/tickets/**").hasAnyRole("USER", "TECHNICIAN", "MANAGER", "ADMIN")
 
                 // ── Notifications: any logged-in user ─────────────────────
                 .requestMatchers("/api/notifications/**").authenticated()
 
-                // ── Users: ADMIN only ─────────────────────────────────────
+                // ── Users: ADMIN only (except /me routes above) ───────────
                 .requestMatchers("/api/users/**").hasRole("ADMIN")
 
                 // ── Everything else requires login ────────────────────────
@@ -79,7 +90,10 @@ public class SecurityConfig {
                     response.getWriter().write("{\"error\":\"Unauthorized\"}");
                 })
             )
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+            .oauth2Login(oauth2 -> oauth2
+                .successHandler(oAuth2SuccessHandler)
+            );
 
         return http.build();
     }

@@ -34,7 +34,7 @@ const Layout = ({ children }) => {
         width: 'calc(100% - 240px)'
       }}>
         <TopBar onMenuClick={() => setMenuOpen(true)} />
-        <main className="mobile-p-main" style={{ flex: 1, padding: '28px 32px', maxWidth: '100%', overflowX: 'hidden' }}>
+        <main className="mobile-p-main" style={{ flex: 1, padding: '36px 40px', maxWidth: '100%', overflowX: 'hidden' }}>
           {children}
         </main>
       </div>
