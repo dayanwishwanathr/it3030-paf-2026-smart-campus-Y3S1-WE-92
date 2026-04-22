@@ -23,35 +23,22 @@ public class JwtUtil {
         return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
-    // ── Token generation (includes campusId + verified claims) ─────────────────
-    public String generateToken(String email, String role, String campusId, boolean verified) {
+    public String generateToken(String email, String role) {
         return Jwts.builder()
                 .subject(email)
-                .claim("role",     role)
-                .claim("campusId", campusId)   // null until profile completed
-                .claim("verified", verified)
+                .claim("role", role)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(getSigningKey())
                 .compact();
     }
 
-    // ── Extractors ─────────────────────────────────────────────────────────────
     public String extractEmail(String token) {
         return getClaims(token).getSubject();
     }
 
     public String extractRole(String token) {
         return getClaims(token).get("role", String.class);
-    }
-
-    public String extractCampusId(String token) {
-        return getClaims(token).get("campusId", String.class);
-    }
-
-    public boolean extractVerified(String token) {
-        Boolean v = getClaims(token).get("verified", Boolean.class);
-        return v != null && v;
     }
 
     public boolean isTokenValid(String token) {

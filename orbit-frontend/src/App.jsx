@@ -7,9 +7,6 @@ import LoginPage      from './pages/auth/LoginPage'
 import RegisterPage   from './pages/auth/RegisterPage'
 import OAuth2Success  from './pages/auth/OAuth2Success'
 
-// Profile
-import ProfilePage    from './pages/profile/ProfilePage'
-
 // User pages
 import DashboardPage  from './pages/dashboard/DashboardPage'
 import CataloguePage  from './pages/resources/CataloguePage'
@@ -23,7 +20,6 @@ import AvailabilityPage   from './pages/bookings/AvailabilityPage'
 // Admin pages
 import AdminDashboard     from './pages/admin/AdminDashboard'
 import UserManagementPage from './pages/admin/UserManagementPage'
-import CreateUserPage     from './pages/admin/CreateUserPage'
 
 // Manager pages
 import ManagerDashboard from './pages/manager/ManagerDashboard'
@@ -50,13 +46,6 @@ const App = () => {
         <Route path="/register"       element={<RegisterPage />} />
         <Route path="/oauth2/success" element={<OAuth2Success />} />
 
-        {/* ── Profile (any authenticated user) ──────────────────────── */}
-        <Route path="/profile" element={
-          <ProtectedRoute allowedRoles={ALL_ROLES}>
-            <ProfilePage />
-          </ProtectedRoute>
-        } />
-
         {/* ── USER + TECHNICIAN ────────────────────────────────────── */}
         <Route path="/dashboard" element={
           <ProtectedRoute allowedRoles={['USER', 'TECHNICIAN']}>
@@ -70,36 +59,36 @@ const App = () => {
         } />
 
         <Route path="/bookings/new" element={
-          <ProtectedRoute allowedRoles={ALL_ROLES} requireVerified>
+          <ProtectedRoute allowedRoles={ALL_ROLES}>
             <BookResourcePage />
           </ProtectedRoute>
         } />
-
+        
         <Route path="/bookings" element={
-          <ProtectedRoute allowedRoles={ALL_ROLES} requireVerified>
+          <ProtectedRoute allowedRoles={ALL_ROLES}>
             <MyBookingsPage />
           </ProtectedRoute>
         } />
 
         <Route path="/bookings/availability" element={
-          <ProtectedRoute allowedRoles={ALL_ROLES} requireVerified>
+          <ProtectedRoute allowedRoles={ALL_ROLES}>
             <AvailabilityPage />
           </ProtectedRoute>
         } />
 
         {/* ── Module C: Tickets ────────────────────────────────────── */}
         <Route path="/tickets" element={
-          <ProtectedRoute allowedRoles={ALL_ROLES} requireVerified>
+          <ProtectedRoute allowedRoles={ALL_ROLES}>
             <TechnicianDashboardPage />
           </ProtectedRoute>
         } />
         <Route path="/tickets/new" element={
-          <ProtectedRoute allowedRoles={ALL_ROLES} requireVerified>
+          <ProtectedRoute allowedRoles={ALL_ROLES}>
             <ReportIssuePage />
           </ProtectedRoute>
         } />
         <Route path="/tickets/:id" element={
-          <ProtectedRoute allowedRoles={ALL_ROLES} requireVerified>
+          <ProtectedRoute allowedRoles={ALL_ROLES}>
             <TicketDetailsPage />
           </ProtectedRoute>
         } />
@@ -120,11 +109,6 @@ const App = () => {
         <Route path="/admin/users" element={
           <ProtectedRoute allowedRoles={['ADMIN']}>
             <UserManagementPage />
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/users/create" element={
-          <ProtectedRoute allowedRoles={['ADMIN']}>
-            <CreateUserPage />
           </ProtectedRoute>
         } />
 
