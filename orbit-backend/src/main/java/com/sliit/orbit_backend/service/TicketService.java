@@ -50,8 +50,7 @@ public class TicketService {
     /**
      * Returns tickets visible to the caller based on their role:
      * - USER       → their own tickets
-     * - TECHNICIAN → ALL tickets (so they can see OPEN ones to claim),
-     *                with optional status filter
+     * - TECHNICIAN → tickets assigned to them only
      * - ADMIN/MANAGER → all tickets, with optional status filter
      */
     public List<TicketResponse> getTickets(String callerId, String callerRole,
@@ -64,7 +63,11 @@ public class TicketService {
         List<Ticket> tickets;
 
         switch (callerRole) {
-            case "TECHNICIAN", "ADMIN", "MANAGER" -> tickets = (status != null)
+            case "TECHNICIAN" -> tickets = (status != null)
+                    ? ticketRepository.findByAssignedToAndStatusOrderByCreatedAtDesc(callerId, status)
+                    : ticketRepository.findByAssignedToOrderByCreatedAtDesc(callerId);
+
+            case "ADMIN", "MANAGER" -> tickets = (status != null)
                     ? ticketRepository.findByStatusOrderByCreatedAtDesc(status)
                     : ticketRepository.findAll().stream()
                         .sorted((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()))
@@ -84,8 +87,8 @@ public class TicketService {
         Ticket ticket = findById(ticketId);
         boolean isOwner      = ticket.getCreatedBy().equals(callerId);
         boolean isPrivileged = "ADMIN".equals(callerRole) || "MANAGER".equals(callerRole);
-        // Any TECHNICIAN can view any ticket (so they can claim OPEN ones)
-        boolean isTech       = "TECHNICIAN".equals(callerRole);
+        boolean isAssignee   = callerId.equals(ticket.getAssignedTo());
+        boolean isTech       = "TECHNICIAN".equals(callerRole) && isAssignee;
 
         if (!isOwner && !isPrivileged && !isTech) {
             throw new RuntimeException("Access denied");
@@ -326,13 +329,24 @@ public class TicketService {
 
     // ── Delete ────────────────────────────────────────────────────────────────
 
+    /**
+     * Delete a ticket:
+     * - ADMIN/MANAGER: can only delete CLOSED tickets
+     * - Owner (USER): can delete their own ticket at any status
+     */
     public void deleteTicket(String ticketId, String callerId, String callerRole) {
         Ticket ticket = findById(ticketId);
         boolean isOwner      = ticket.getCreatedBy().equals(callerId);
-        boolean isPrivileged = "ADMIN".equals(callerRole);
-        if (!isOwner && !isPrivileged) {
+        boolean isPrivileged = "ADMIN".equals(callerRole) || "MANAGER".equals(callerRole);
+
+        if (isPrivileged) {
+            if (ticket.getStatus() != TicketStatus.CLOSED) {
+                throw new IllegalStateException("ADMIN and MANAGER can only delete CLOSED tickets");
+            }
+        } else if (!isOwner) {
             throw new RuntimeException("Access denied: cannot delete this ticket");
         }
+
         commentRepository.deleteByTicketId(ticketId);
         attachmentRepository.deleteByTicketId(ticketId);
         ticketRepository.delete(ticket);

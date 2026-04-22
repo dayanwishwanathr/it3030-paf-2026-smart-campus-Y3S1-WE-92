@@ -250,8 +250,6 @@ const TicketDetailsPage = () => {
   const [technicians, setTechnicians] = useState([])
   const [assigningTo, setAssigningTo] = useState('')
   const [assigning, setAssigning] = useState(false)
-  // Claim state (TECHNICIAN)
-  const [claiming, setClaiming] = useState(false)
 
   const fetchTicket = async () => {
     try {
@@ -282,15 +280,13 @@ const TicketDetailsPage = () => {
     }
   }
 
-  const handleClaim = async () => {
-    setClaiming(true)
+  const handleDelete = async () => {
+    if (!window.confirm('Permanently delete this closed ticket? This cannot be undone.')) return
     try {
-      await ticketApi.claimTicket(id)
-      fetchTicket()
+      await ticketApi.deleteTicket(id)
+      navigate('/tickets')
     } catch (e) {
-      setError(e.response?.data?.error || 'Failed to claim ticket.')
-    } finally {
-      setClaiming(false)
+      setError(e.response?.data?.error || 'Delete failed.')
     }
   }
 
@@ -457,35 +453,6 @@ const TicketDetailsPage = () => {
           </div>
         )}
 
-        {/* ── Claim Ticket (TECHNICIAN on OPEN unassigned tickets) ── */}
-        {role === 'TECHNICIAN' &&
-          ticket.status === 'OPEN' &&
-          !ticket.assignedTo && (
-          <div style={{
-            background: 'rgba(245,158,11,0.05)',
-            border: '1px solid rgba(245,158,11,0.25)',
-            borderRadius: 12, padding: 20, marginTop: 20,
-          }}>
-            <p style={{ fontSize: 13, fontWeight: 600, color: '#fcd34d', marginBottom: 8,
-              textTransform: 'uppercase', letterSpacing: '0.05em' }}>Available to Claim</p>
-            <p style={{ fontSize: 13, color: '#94a3b8', marginBottom: 14, lineHeight: 1.5 }}>
-              This ticket is unassigned and open. You can claim it to take responsibility and begin working on it.
-            </p>
-            <button
-              onClick={handleClaim}
-              disabled={claiming}
-              style={{
-                padding: '9px 22px', borderRadius: 8, fontSize: 13, fontWeight: 700,
-                background: claiming ? 'rgba(245,158,11,0.05)' : 'rgba(245,158,11,0.12)',
-                border: '1px solid rgba(245,158,11,0.4)',
-                color: '#fcd34d', cursor: claiming ? 'default' : 'pointer',
-              }}
-            >
-              {claiming ? 'Claiming…' : '🔧 Claim Ticket'}
-            </button>
-          </div>
-        )}
-
         {/* ── Assign Technician (ADMIN/MANAGER) ── */}
         {(role === 'ADMIN' || role === 'MANAGER') &&
           ['OPEN', 'IN_PROGRESS'].includes(ticket.status) && (
@@ -538,6 +505,31 @@ const TicketDetailsPage = () => {
 
         {/* ── Status actions ── */}
         <StatusActions ticket={ticket} role={role} userId={user?.id} onAction={handleAction} />
+
+        {/* ── Delete Ticket (ADMIN/MANAGER — CLOSED only) ── */}
+        {(role === 'ADMIN' || role === 'MANAGER') && ticket.status === 'CLOSED' && (
+          <div style={{
+            background: 'rgba(239,68,68,0.04)',
+            border: '1px solid rgba(239,68,68,0.2)',
+            borderRadius: 12, padding: 20, marginTop: 20,
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, flexWrap: 'wrap',
+          }}>
+            <div>
+              <p style={{ fontSize: 13, fontWeight: 600, color: '#f87171', margin: '0 0 4px' }}>Delete Ticket</p>
+              <p style={{ fontSize: 12, color: '#64748b', margin: 0 }}>Permanently remove this closed ticket and all its comments and attachments.</p>
+            </div>
+            <button
+              onClick={handleDelete}
+              style={{
+                padding: '8px 20px', borderRadius: 8, fontSize: 13, fontWeight: 600,
+                background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.35)',
+                color: '#f87171', cursor: 'pointer', flexShrink: 0,
+              }}
+            >
+              🗑️ Delete Ticket
+            </button>
+          </div>
+        )}
 
         {/* ── Comments ── */}
         <div style={{ background: '#131929', border: '1px solid #1e2d45',
