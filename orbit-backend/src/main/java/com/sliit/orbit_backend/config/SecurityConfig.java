@@ -2,6 +2,7 @@ package com.sliit.orbit_backend.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import com.sliit.orbit_backend.security.JwtAuthFilter;
+import com.sliit.orbit_backend.security.OAuth2SuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,7 +21,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.Arrays;
 import java.util.List;
 
 @Configuration
@@ -80,7 +80,10 @@ public class SecurityConfig {
                     response.getWriter().write("{\"error\":\"Unauthorized\"}");
                 })
             )
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+            .oauth2Login(oauth2 -> oauth2
+                .successHandler(oAuth2SuccessHandler)
+            );
 
         return http.build();
     }
