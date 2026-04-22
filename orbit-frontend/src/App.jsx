@@ -23,6 +23,7 @@ import AvailabilityPage   from './pages/bookings/AvailabilityPage'
 // Admin pages
 import AdminDashboard     from './pages/admin/AdminDashboard'
 import UserManagementPage from './pages/admin/UserManagementPage'
+import CreateUserPage     from './pages/admin/CreateUserPage'
 
 // Manager pages
 import ManagerDashboard from './pages/manager/ManagerDashboard'
@@ -119,6 +120,11 @@ const App = () => {
         <Route path="/admin/users" element={
           <ProtectedRoute allowedRoles={['ADMIN']}>
             <UserManagementPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/users/create" element={
+          <ProtectedRoute allowedRoles={['ADMIN']}>
+            <CreateUserPage />
           </ProtectedRoute>
         } />
 

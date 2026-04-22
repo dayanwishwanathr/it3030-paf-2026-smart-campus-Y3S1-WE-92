@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import com.sliit.orbit_backend.dto.request.UpdateProfileRequest;
 import com.sliit.orbit_backend.dto.response.UserResponse;
 import com.sliit.orbit_backend.model.User;
+import com.sliit.orbit_backend.model.enums.AuthProvider;
 import com.sliit.orbit_backend.model.enums.Role;
 import com.sliit.orbit_backend.repository.UserRepository;
 
@@ -76,6 +77,29 @@ public class UserService {
             throw new RuntimeException("User not found with id: " + id);
         }
         userRepository.deleteById(userId);
+    }
+
+    // Create a new user — Admin only
+    public UserResponse createUser(String name, String email, String password, String role) {
+        if (userRepository.findByEmail(email).isPresent()) {
+            throw new IllegalArgumentException("A user with this email already exists");
+        }
+        Role parsedRole;
+        try {
+            parsedRole = Role.valueOf(role.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid role: " + role);
+        }
+        User user = User.builder()
+                .name(name.trim())
+                .email(email.trim().toLowerCase())
+                .password(passwordEncoder.encode(password))
+                .role(parsedRole)
+                .provider(AuthProvider.LOCAL)
+                // Admin-created accounts are pre-verified
+                .verified(parsedRole == Role.ADMIN || parsedRole == Role.MANAGER)
+                .build();
+        return mapToUserResponse(userRepository.save(user));
     }
 
     // ── Self-service profile endpoints ─────────────────────────────────────────

@@ -58,6 +58,27 @@ public class UserController {
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
+    // POST /api/users — admin creates a new user
+    @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> createUser(@RequestBody Map<String, String> body) {
+        try {
+            String name     = body.get("name");
+            String email    = body.get("email");
+            String password = body.get("password");
+            String role     = body.getOrDefault("role", "USER");
+            if (name == null || email == null || password == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "name, email and password are required"));
+            }
+            UserResponse created = userService.createUser(name, email, password, role);
+            return ResponseEntity.status(201).body(created);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", "Failed to create user"));
+        }
+    }
+
     // GET /api/users/{id} — get single user
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
