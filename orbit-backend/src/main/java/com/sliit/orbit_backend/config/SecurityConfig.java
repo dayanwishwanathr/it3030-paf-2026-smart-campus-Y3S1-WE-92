@@ -37,15 +37,21 @@ public class SecurityConfig {
     private String allowedOriginsRaw;
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, OAuth2SuccessHandler oAuth2SuccessHandler) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            // STATELESS: Spring Security never loads/saves SecurityContext from the
+            // HTTP session, so the OAuth2 session auth can't override our JWT filter.
+            // The OAuth2 handshake still works — it stores its state via a separate
+            // session attribute (HttpSessionOAuth2AuthorizationRequestRepository),
+            // which is independent of Spring Security's SecurityContextRepository.
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
 
-                // ── Public ────────────────────────────────────────────────
+                // ── OAuth2 & auth endpoints ───────────────────────────────
+                .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
 
                 // ── Resources: public read, MANAGER manages ───────────────
@@ -70,8 +76,21 @@ public class SecurityConfig {
                 // ── Everything else requires login ────────────────────────
                 .anyRequest().authenticated()
             )
+<<<<<<< Updated upstream
             .oauth2Login(oauth2 -> oauth2
                 .successHandler(oAuth2SuccessHandler)
+=======
+            // ── Wire OAuth2 login with our custom success handler ─────────
+            .oauth2Login(oauth2 -> oauth2
+                .successHandler(oAuth2SuccessHandler)
+            )
+            .exceptionHandling(ex -> ex
+                .authenticationEntryPoint((request, response, authException) -> {
+                    response.setStatus(jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED);
+                    response.setContentType("application/json");
+                    response.getWriter().write("{\"error\":\"Unauthorized\"}");
+                })
+>>>>>>> Stashed changes
             )
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
