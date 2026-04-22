@@ -94,6 +94,18 @@ public class TicketController {
         return ResponseEntity.ok(ticketService.getTicketById(id, userId, role));
     }
 
+    /**
+     * Returns aggregated SLA statistics.
+     * Accessible by ADMIN, MANAGER, and TECHNICIAN.
+     */
+    @GetMapping("/stats")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'TECHNICIAN')")
+    public ResponseEntity<Map<String, Object>> getStats(Authentication authentication) {
+        String role   = getRole(authentication);
+        String userId = getUserId(authentication);
+        return ResponseEntity.ok(ticketService.getStats(role, userId));
+    }
+
     // ── Create ────────────────────────────────────────────────────────────────
 
     @PostMapping

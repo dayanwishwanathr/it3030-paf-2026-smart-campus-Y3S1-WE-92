@@ -84,6 +84,19 @@ public class Ticket {
      */
     private String rejectionReason;
 
+    // ── SLA Timestamps (Service-Level Timer) ──────────────────────────────────
+
+    /**
+     * Timestamp of the first technician response:
+     * set when a technician claims/is assigned the ticket OR posts the first comment.
+     */
+    private LocalDateTime firstRespondedAt;
+
+    /**
+     * Timestamp when the ticket status was changed to RESOLVED.
+     */
+    private LocalDateTime resolvedAt;
+
     @CreatedDate
     private LocalDateTime createdAt;
 

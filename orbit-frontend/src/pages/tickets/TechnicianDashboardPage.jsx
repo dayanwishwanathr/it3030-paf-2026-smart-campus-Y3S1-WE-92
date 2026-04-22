@@ -20,6 +20,14 @@ const PRIORITY_CFG = {
   CRITICAL: { text: '#d8b4fe' },
 }
 
+const SLA_BADGE = {
+  ON_TRACK:         { color: '#10b981', label: 'On Track'          },
+  AT_RISK:          { color: '#f59e0b', label: '⚠ At Risk'          },
+  BREACHED:         { color: '#ef4444', label: '🚨 Breached'         },
+  RESOLVED_ON_TIME: { color: '#06b6d4', label: '⚡ On Time'          },
+  RESOLVED_LATE:    { color: '#94a3b8', label: 'Resolved Late'      },
+}
+
 const S = {
   card: {
     background: '#131929',
@@ -99,6 +107,22 @@ const TicketCard = ({ ticket, onQuickAction, role, userId }) => {
         <MetaChip label="Reporter" value={ticket.createdByName || '—'} />
         <MetaChip label="Assigned" value={ticket.assignedToName || '—'} />
       </div>
+
+      {/* SLA badge */}
+      {ticket.slaStatus && (() => {
+        const sla = SLA_BADGE[ticket.slaStatus]
+        return sla ? (
+          <span style={{
+            display: 'inline-block', padding: '2px 8px', borderRadius: 4,
+            fontSize: 10, fontWeight: 700,
+            background: `${sla.color}18`,
+            border: `1px solid ${sla.color}44`,
+            color: sla.color, alignSelf: 'flex-start',
+          }}>
+            ⏱ SLA: {sla.label}
+          </span>
+        ) : null
+      })()}
 
       {/* Description preview */}
       <p style={{ fontSize: 12, color: '#64748b', margin: 0, lineHeight: 1.5,
@@ -197,6 +221,52 @@ const StatStrip = ({ tickets }) => {
   )
 }
 
+// ── SLA Stats Panel (ADMIN / MANAGER / TECHNICIAN) ───────────────────────────
+const fmtMin = (min) => {
+  if (min == null) return '—'
+  const h = Math.floor(min / 60)
+  const m = min % 60
+  if (h === 0) return `${m}m`
+  if (m === 0) return `${h}h`
+  return `${h}h ${m}m`
+}
+
+const SlaStatsPanel = ({ stats }) => {
+  const items = [
+    { label: 'Avg Response Time',   value: fmtMin(stats.avgTimeToFirstResponseMinutes), color: '6,182,212'   },
+    { label: 'Avg Resolution Time', value: fmtMin(stats.avgTimeToResolutionMinutes),    color: '16,185,129'  },
+    { label: 'SLA Breaches',        value: stats.breachedCount ?? 0,                    color: '239,68,68'   },
+  ]
+  return (
+    <div style={{
+      background: 'rgba(6,182,212,0.03)',
+      border: '1px solid rgba(6,182,212,0.12)',
+      borderRadius: 10, padding: '14px 18px',
+      marginBottom: 20,
+      display: 'flex', gap: 0, flexWrap: 'wrap',
+    }}>
+      <p style={{ fontSize: 11, fontWeight: 700, color: '#475569', textTransform: 'uppercase',
+        letterSpacing: '0.07em', margin: '0 0 12px', width: '100%' }}>⏱ SLA Performance</p>
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', width: '100%' }}>
+        {items.map(s => (
+          <div key={s.label} style={{
+            background: `rgba(${s.color},0.07)`,
+            border: `1px solid rgba(${s.color},0.2)`,
+            borderRadius: 8, padding: '8px 16px',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 120,
+          }}>
+            <span style={{ fontSize: 18, fontWeight: 800, color: `rgb(${s.color})`,
+              textShadow: `0 0 8px rgba(${s.color},0.3)` }}>{s.value}</span>
+            <span style={{ fontSize: 9, fontWeight: 600, color: `rgba(${s.color},0.7)`,
+              textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: 2,
+              textAlign: 'center' }}>{s.label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 // ── Main Page ─────────────────────────────────────────────────────────────────
 const TechnicianDashboardPage = () => {
   const navigate = useNavigate()
@@ -206,6 +276,7 @@ const TechnicianDashboardPage = () => {
   const [tickets, setTickets] = useState([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('ALL')
+  const [slaStats, setSlaStats] = useState(null)
 
   const fetchTickets = async () => {
     setLoading(true)
@@ -220,6 +291,13 @@ const TechnicianDashboardPage = () => {
   }
 
   useEffect(() => { fetchTickets() }, [filter])
+
+  // Load SLA stats for privileged roles
+  useEffect(() => {
+    if (role === 'ADMIN' || role === 'MANAGER' || role === 'TECHNICIAN') {
+      ticketApi.getStats().then(setSlaStats).catch(() => {})
+    }
+  }, [])
 
   const handleQuickAction = async (ticketId, status) => {
     try {
@@ -264,6 +342,11 @@ const TechnicianDashboardPage = () => {
 
         {/* ── Stats ── */}
         {tickets.length > 0 && <StatStrip tickets={tickets} />}
+
+        {/* ── SLA Performance Panel ── */}
+        {slaStats && (role === 'ADMIN' || role === 'MANAGER' || role === 'TECHNICIAN') && (
+          <SlaStatsPanel stats={slaStats} />
+        )}
 
         {/* ── Filters ── */}
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 20 }}>

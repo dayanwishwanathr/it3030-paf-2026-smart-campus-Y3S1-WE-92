@@ -226,6 +226,127 @@ const StatusActions = ({ ticket, role, userId, onAction }) => {
   )
 }
 
+// ── SLA config (mirrors backend SlaConfig.java) ───────────────────────────────
+const SLA_THRESHOLDS = {
+  CRITICAL: { respondH: 4,  resolveH: 24  },
+  HIGH:     { respondH: 8,  resolveH: 48  },
+  MEDIUM:   { respondH: 24, resolveH: 72  },
+  LOW:      { respondH: 48, resolveH: 120 },
+}
+
+const SLA_STATUS_CFG = {
+  ON_TRACK:         { color: '#10b981', rgb: '16,185,129',  label: '✅ On Track',          bg: 'rgba(16,185,129,0.08)',  border: 'rgba(16,185,129,0.25)'  },
+  AT_RISK:          { color: '#f59e0b', rgb: '245,158,11',  label: '⚠️ At Risk',            bg: 'rgba(245,158,11,0.08)',  border: 'rgba(245,158,11,0.25)'  },
+  BREACHED:         { color: '#ef4444', rgb: '239,68,68',   label: '🚨 SLA Breached',       bg: 'rgba(239,68,68,0.08)',   border: 'rgba(239,68,68,0.25)'   },
+  RESOLVED_ON_TIME: { color: '#06b6d4', rgb: '6,182,212',   label: '⚡ Resolved On Time',   bg: 'rgba(6,182,212,0.08)',   border: 'rgba(6,182,212,0.25)'   },
+  RESOLVED_LATE:    { color: '#94a3b8', rgb: '148,163,184', label: '🕐 Resolved Late',      bg: 'rgba(148,163,184,0.08)', border: 'rgba(148,163,184,0.25)' },
+}
+
+const fmtDuration = (minutes) => {
+  if (minutes == null) return '—'
+  const h = Math.floor(minutes / 60)
+  const m = minutes % 60
+  if (h === 0) return `${m}m`
+  if (m === 0) return `${h}h`
+  return `${h}h ${m}m`
+}
+
+const fmtDeadline = (isoStr) => {
+  if (!isoStr) return '—'
+  const d = new Date(isoStr)
+  const now = new Date()
+  const diffMs = d - now
+  const absMin = Math.abs(Math.floor(diffMs / 60000))
+  const h = Math.floor(absMin / 60)
+  const m = absMin % 60
+  const timeStr = h > 0 ? `${h}h ${m}m` : `${m}m`
+  const dateStr = d.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+  if (diffMs < 0) return `${dateStr} (${timeStr} overdue)`
+  return `${dateStr} (${timeStr} left)`
+}
+
+// ── SLA Status Card ───────────────────────────────────────────────────────────
+const SlaCard = ({ ticket }) => {
+  const slaCfg = SLA_STATUS_CFG[ticket.slaStatus] || SLA_STATUS_CFG.ON_TRACK
+  const threshold = SLA_THRESHOLDS[ticket.priority] || SLA_THRESHOLDS.MEDIUM
+  const isActive = !['RESOLVED', 'CLOSED', 'REJECTED'].includes(ticket.status)
+
+  return (
+    <div style={{
+      background: slaCfg.bg,
+      border: `1px solid ${slaCfg.border}`,
+      borderRadius: 12, padding: 20, marginBottom: 20,
+    }}>
+      {/* Header row */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10, marginBottom: 16 }}>
+        <p style={{ fontSize: 12, fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>
+          ⏱ Service Level Agreement
+        </p>
+        <span style={{
+          padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700,
+          background: `rgba(${slaCfg.rgb},0.15)`, border: `1px solid ${slaCfg.border}`,
+          color: slaCfg.color,
+        }}>
+          {slaCfg.label}
+        </span>
+      </div>
+
+      {/* Metrics grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12 }}>
+
+        {/* Respond deadline */}
+        <div style={{ background: 'rgba(0,0,0,0.15)', borderRadius: 8, padding: '10px 14px' }}>
+          <p style={{ fontSize: 10, fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 4px' }}>
+            Respond By ({threshold.respondH}h SLA)
+          </p>
+          {ticket.firstRespondedAt ? (
+            <>
+              <p style={{ fontSize: 13, fontWeight: 700, color: '#34d399', margin: '0 0 2px' }}>✓ Responded</p>
+              <p style={{ fontSize: 11, color: '#64748b', margin: 0 }}>in {fmtDuration(ticket.timeToFirstResponseMinutes)}</p>
+            </>
+          ) : (
+            <>
+              <p style={{ fontSize: 12, fontWeight: 600, color: slaCfg.color, margin: '0 0 2px' }}>Pending</p>
+              <p style={{ fontSize: 11, color: '#64748b', margin: 0 }}>{fmtDeadline(ticket.slaDeadlineRespondBy)}</p>
+            </>
+          )}
+        </div>
+
+        {/* Resolve deadline */}
+        <div style={{ background: 'rgba(0,0,0,0.15)', borderRadius: 8, padding: '10px 14px' }}>
+          <p style={{ fontSize: 10, fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 4px' }}>
+            Resolve By ({threshold.resolveH}h SLA)
+          </p>
+          {ticket.resolvedAt ? (
+            <>
+              <p style={{ fontSize: 13, fontWeight: 700, color: '#34d399', margin: '0 0 2px' }}>✓ Resolved</p>
+              <p style={{ fontSize: 11, color: '#64748b', margin: 0 }}>in {fmtDuration(ticket.timeToResolutionMinutes)}</p>
+            </>
+          ) : (
+            <>
+              <p style={{ fontSize: 12, fontWeight: 600, color: slaCfg.color, margin: '0 0 2px' }}>
+                {isActive ? 'In Progress' : 'Not Resolved'}
+              </p>
+              <p style={{ fontSize: 11, color: '#64748b', margin: 0 }}>{fmtDeadline(ticket.slaDeadlineResolveBy)}</p>
+            </>
+          )}
+        </div>
+
+        {/* Priority threshold info */}
+        <div style={{ background: 'rgba(0,0,0,0.15)', borderRadius: 8, padding: '10px 14px' }}>
+          <p style={{ fontSize: 10, fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 4px' }}>
+            Priority Tier
+          </p>
+          <p style={{ fontSize: 13, fontWeight: 700, color: '#f1f5f9', margin: '0 0 2px' }}>{ticket.priority}</p>
+          <p style={{ fontSize: 11, color: '#64748b', margin: 0 }}>
+            {threshold.respondH}h respond · {threshold.resolveH}h resolve
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Section header ─────────────────────────────────────────────────────────────
 const SectionTitle = ({ children }) => (
   <p style={{
@@ -420,6 +541,9 @@ const TicketDetailsPage = () => {
             </div>
           )}
         </div>
+
+        {/* ── SLA Status Card ── */}
+        <SlaCard ticket={ticket} />
 
         {/* ── Attachments ── */}
         {ticket.attachments?.length > 0 && (

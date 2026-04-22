@@ -1,5 +1,6 @@
 package com.sliit.orbit_backend.service;
 
+import com.sliit.orbit_backend.config.SlaConfig;
 import com.sliit.orbit_backend.dto.request.TicketCommentRequest;
 import com.sliit.orbit_backend.dto.request.TicketRequest;
 import com.sliit.orbit_backend.dto.request.TicketStatusRequest;
@@ -24,8 +25,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.OptionalDouble;
 import java.util.stream.Collectors;
 
 /**
@@ -112,6 +118,10 @@ public class TicketService {
 
         ticket.setAssignedTo(technicianId);
         ticket.setStatus(TicketStatus.IN_PROGRESS);
+        // ── SLA: first response timestamp ──
+        if (ticket.getFirstRespondedAt() == null) {
+            ticket.setFirstRespondedAt(LocalDateTime.now());
+        }
         Ticket saved = ticketRepository.save(ticket);
 
         // Notify creator
@@ -172,6 +182,10 @@ public class TicketService {
         if (targetStatus == TicketStatus.REJECTED && request.getRejectionReason() != null) {
             ticket.setRejectionReason(request.getRejectionReason());
         }
+        // ── SLA: capture resolvedAt when transitioning to RESOLVED ──
+        if (targetStatus == TicketStatus.RESOLVED && ticket.getResolvedAt() == null) {
+            ticket.setResolvedAt(LocalDateTime.now());
+        }
 
         Ticket saved = ticketRepository.save(ticket);
 
@@ -197,6 +211,10 @@ public class TicketService {
         // Auto-advance status to IN_PROGRESS when assigned
         if (ticket.getStatus() == TicketStatus.OPEN) {
             ticket.setStatus(TicketStatus.IN_PROGRESS);
+        }
+        // ── SLA: first response timestamp ──
+        if (ticket.getFirstRespondedAt() == null) {
+            ticket.setFirstRespondedAt(LocalDateTime.now());
         }
 
         Ticket saved = ticketRepository.save(ticket);
@@ -238,6 +256,12 @@ public class TicketService {
                 .build();
 
         TicketComment saved = commentRepository.save(comment);
+
+        // ── SLA: if TECHNICIAN is first to comment, mark first response time ──
+        if ("TECHNICIAN".equals(authorRole) && ticket.getFirstRespondedAt() == null) {
+            ticket.setFirstRespondedAt(LocalDateTime.now());
+            ticketRepository.save(ticket);
+        }
 
         // Notify ticket creator (if different from commenter)
         if (!ticket.getCreatedBy().equals(authorId)) {
@@ -352,6 +376,58 @@ public class TicketService {
         ticketRepository.delete(ticket);
     }
 
+    // ── Stats ─────────────────────────────────────────────────────────────────
+
+    /**
+     * Returns aggregated SLA statistics for the dashboard.
+     * TECHNICIAN sees only their assigned tickets; ADMIN/MANAGER see all.
+     */
+    public Map<String, Object> getStats(String callerRole, String callerId) {
+        List<Ticket> all;
+        if ("TECHNICIAN".equals(callerRole)) {
+            all = ticketRepository.findByAssignedToOrderByCreatedAtDesc(callerId);
+        } else {
+            all = ticketRepository.findAll();
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+
+        long openCount       = all.stream().filter(t -> t.getStatus() == TicketStatus.OPEN).count();
+        long inProgressCount = all.stream().filter(t -> t.getStatus() == TicketStatus.IN_PROGRESS).count();
+        long resolvedCount   = all.stream().filter(t ->
+                t.getStatus() == TicketStatus.RESOLVED || t.getStatus() == TicketStatus.CLOSED).count();
+
+        OptionalDouble avgResponse = all.stream()
+                .filter(t -> t.getFirstRespondedAt() != null && t.getCreatedAt() != null)
+                .mapToLong(t -> ChronoUnit.MINUTES.between(t.getCreatedAt(), t.getFirstRespondedAt()))
+                .average();
+
+        OptionalDouble avgResolution = all.stream()
+                .filter(t -> t.getResolvedAt() != null && t.getCreatedAt() != null)
+                .mapToLong(t -> ChronoUnit.MINUTES.between(t.getCreatedAt(), t.getResolvedAt()))
+                .average();
+
+        long breached = all.stream()
+                .filter(t -> t.getStatus() != TicketStatus.RESOLVED
+                          && t.getStatus() != TicketStatus.CLOSED
+                          && t.getStatus() != TicketStatus.REJECTED
+                          && t.getCreatedAt() != null)
+                .filter(t -> now.isAfter(t.getCreatedAt().plus(SlaConfig.resolveBy(t.getPriority()))))
+                .count();
+
+        Map<String, Object> stats = new LinkedHashMap<>();
+        stats.put("totalTickets",                 all.size());
+        stats.put("openCount",                    openCount);
+        stats.put("inProgressCount",              inProgressCount);
+        stats.put("resolvedCount",                resolvedCount);
+        stats.put("breachedCount",                breached);
+        stats.put("avgTimeToFirstResponseMinutes",
+                avgResponse.isPresent()   ? (long) avgResponse.getAsDouble()   : null);
+        stats.put("avgTimeToResolutionMinutes",
+                avgResolution.isPresent() ? (long) avgResolution.getAsDouble() : null);
+        return stats;
+    }
+
     // ── Validation ────────────────────────────────────────────────────────────
 
     private void validateTransition(TicketStatus current, TicketStatus target,
@@ -397,6 +473,37 @@ public class TicketService {
                 ? userRepository.findById(t.getAssignedTo()).map(u -> u.getName()).orElse("Unknown")
                 : null;
 
+        // ── SLA computation ──
+        LocalDateTime now       = LocalDateTime.now();
+        LocalDateTime respondBy = (t.getCreatedAt() != null)
+                ? t.getCreatedAt().plus(SlaConfig.respondBy(t.getPriority())) : null;
+        LocalDateTime resolveBy = (t.getCreatedAt() != null)
+                ? t.getCreatedAt().plus(SlaConfig.resolveBy(t.getPriority())) : null;
+
+        Long timeToFirstResponse = (t.getFirstRespondedAt() != null && t.getCreatedAt() != null)
+                ? ChronoUnit.MINUTES.between(t.getCreatedAt(), t.getFirstRespondedAt()) : null;
+        Long timeToResolution = (t.getResolvedAt() != null && t.getCreatedAt() != null)
+                ? ChronoUnit.MINUTES.between(t.getCreatedAt(), t.getResolvedAt()) : null;
+
+        String slaStatus;
+        TicketStatus s = t.getStatus();
+        if (s == TicketStatus.RESOLVED || s == TicketStatus.CLOSED) {
+            slaStatus = (t.getResolvedAt() != null && resolveBy != null
+                         && t.getResolvedAt().isBefore(resolveBy))
+                    ? "RESOLVED_ON_TIME" : "RESOLVED_LATE";
+        } else if (s == TicketStatus.REJECTED) {
+            slaStatus = "RESOLVED_LATE"; // rejected = did not resolve
+        } else {
+            // Active ticket
+            if (resolveBy == null || now.isAfter(resolveBy)) {
+                slaStatus = "BREACHED";
+            } else {
+                long totalWindow   = ChronoUnit.MINUTES.between(t.getCreatedAt(), resolveBy);
+                long remaining     = ChronoUnit.MINUTES.between(now, resolveBy);
+                slaStatus = (remaining < totalWindow * 0.25) ? "AT_RISK" : "ON_TRACK";
+            }
+        }
+
         TicketResponse.TicketResponseBuilder builder = TicketResponse.builder()
                 .id(t.getId())
                 .title(t.getTitle())
@@ -413,7 +520,15 @@ public class TicketService {
                 .resolutionNotes(t.getResolutionNotes())
                 .rejectionReason(t.getRejectionReason())
                 .createdAt(t.getCreatedAt())
-                .updatedAt(t.getUpdatedAt());
+                .updatedAt(t.getUpdatedAt())
+                // SLA fields
+                .firstRespondedAt(t.getFirstRespondedAt())
+                .resolvedAt(t.getResolvedAt())
+                .timeToFirstResponseMinutes(timeToFirstResponse)
+                .timeToResolutionMinutes(timeToResolution)
+                .slaDeadlineRespondBy(respondBy)
+                .slaDeadlineResolveBy(resolveBy)
+                .slaStatus(slaStatus);
 
         if (includeDetails) {
             List<TicketCommentResponse> comments = commentRepository

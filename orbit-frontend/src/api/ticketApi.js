@@ -36,6 +36,10 @@ export const ticketApi = {
   getTechnicians: () =>
     axiosInstance.get('/tickets/technicians').then(r => r.data),
 
+  /** Get aggregated SLA stats (ADMIN/MANAGER/TECHNICIAN). */
+  getStats: () =>
+    axiosInstance.get('/tickets/stats').then(r => r.data),
+
   /** Delete a ticket (owner or ADMIN). */
   deleteTicket: (id) =>
     axiosInstance.delete(`/tickets/${id}`).then(r => r.data),
