@@ -27,6 +27,14 @@ import ManagerDashboard from './pages/manager/ManagerDashboard'
 // Public pages
 import PublicResourcePreviewPage from './pages/resources/PublicResourcePreviewPage'
 
+// ── Module C: Tickets & Notifications ─────────────────────────────────────────
+import ReportIssuePage         from './pages/tickets/ReportIssuePage'
+import TicketDetailsPage       from './pages/tickets/TicketDetailsPage'
+import TechnicianDashboardPage from './pages/tickets/TechnicianDashboardPage'
+import NotificationsPage       from './pages/notifications/NotificationsPage'
+
+const ALL_ROLES = ['USER', 'TECHNICIAN', 'ADMIN', 'MANAGER']
+
 const App = () => {
   return (
     <AuthProvider>
@@ -45,26 +53,50 @@ const App = () => {
           </ProtectedRoute>
         } />
         <Route path="/resources" element={
-          <ProtectedRoute allowedRoles={['USER', 'TECHNICIAN', 'ADMIN', 'MANAGER']}>
+          <ProtectedRoute allowedRoles={ALL_ROLES}>
             <CataloguePage />
           </ProtectedRoute>
         } />
 
         <Route path="/bookings/new" element={
-          <ProtectedRoute allowedRoles={['USER', 'TECHNICIAN', 'ADMIN', 'MANAGER']}>
+          <ProtectedRoute allowedRoles={ALL_ROLES}>
             <BookResourcePage />
           </ProtectedRoute>
         } />
         
         <Route path="/bookings" element={
-          <ProtectedRoute allowedRoles={['USER', 'TECHNICIAN', 'ADMIN', 'MANAGER']}>
+          <ProtectedRoute allowedRoles={ALL_ROLES}>
             <MyBookingsPage />
           </ProtectedRoute>
         } />
 
         <Route path="/bookings/availability" element={
-          <ProtectedRoute allowedRoles={['USER', 'TECHNICIAN', 'ADMIN', 'MANAGER']}>
+          <ProtectedRoute allowedRoles={ALL_ROLES}>
             <AvailabilityPage />
+          </ProtectedRoute>
+        } />
+
+        {/* ── Module C: Tickets ────────────────────────────────────── */}
+        <Route path="/tickets" element={
+          <ProtectedRoute allowedRoles={ALL_ROLES}>
+            <TechnicianDashboardPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/tickets/new" element={
+          <ProtectedRoute allowedRoles={ALL_ROLES}>
+            <ReportIssuePage />
+          </ProtectedRoute>
+        } />
+        <Route path="/tickets/:id" element={
+          <ProtectedRoute allowedRoles={ALL_ROLES}>
+            <TicketDetailsPage />
+          </ProtectedRoute>
+        } />
+
+        {/* ── Module D: Notifications ───────────────────────────────── */}
+        <Route path="/notifications" element={
+          <ProtectedRoute allowedRoles={ALL_ROLES}>
+            <NotificationsPage />
           </ProtectedRoute>
         } />
 
