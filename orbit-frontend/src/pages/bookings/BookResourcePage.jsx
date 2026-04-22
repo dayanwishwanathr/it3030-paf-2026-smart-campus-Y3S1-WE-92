@@ -256,11 +256,13 @@ const BookResourcePage = () => {
     setError('')
 
     if (selectedResource) {
+      // ✓ VALIDATION 1: Ensure start time is before end time
       if (formData.startTime >= formData.endTime) {
         setError('Start time must be earlier than the end time.')
         return
       }
       
+      // ✓ VALIDATION 2: Check resource availability window
       const availStart = selectedResource.availableFrom || '00:00'
       const availEnd = selectedResource.availableTo || '23:59'
 
@@ -269,12 +271,14 @@ const BookResourcePage = () => {
         return
       }
 
+      // ✓ VALIDATION 3: Verify attendee count is valid (numeric and >= 1)
       const attendees = parseInt(formData.attendees, 10)
       if (isNaN(attendees) || attendees < 1) {
         setError('Expected attendees must be at least 1.')
         return
       }
 
+      // ✓ VALIDATION 4: Ensure attendees don't exceed resource capacity
       if (selectedResource.capacity && attendees > selectedResource.capacity) {
         setError(`Expected attendees cannot exceed the maximum capacity of ${selectedResource.capacity}.`)
         return

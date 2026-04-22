@@ -46,9 +46,9 @@ public class BookingService {
     }
 
     /**
-     * Returns ALL bookings with optional dynamic filters.
-     * Intended for ADMIN and MANAGER roles.
-     */
+ * Returns ALL bookings (any status except CANCELLED) for a resource on a specific date.
+ * Used by the Availability Viewer — visible to all authenticated users.
+ */
     public List<BookingResponse> getAllBookings(BookingStatus status, String resourceId, String date) {
         Query query = new Query();
 
@@ -163,6 +163,7 @@ public class BookingService {
     }
 
     private void checkConflicts(String resourceId, java.time.LocalDate date, java.time.LocalTime startTime, java.time.LocalTime endTime) {
+        // ✓ LOGIC: Fetch all APPROVED bookings for the same resource on the same date
         List<Booking> approvedBookings = bookingRepository.findByResourceIdAndDateAndStatus(resourceId, date, BookingStatus.APPROVED);
         
         for (Booking existing : approvedBookings) {

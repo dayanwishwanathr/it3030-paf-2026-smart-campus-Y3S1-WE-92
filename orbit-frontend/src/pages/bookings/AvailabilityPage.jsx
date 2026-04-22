@@ -283,7 +283,7 @@ const AvailabilityPage = () => {
               </select>
             </div>
 
-            {/* Date picker */}
+            {/* Date picker with min constraint*/}
             <div>
               <p style={S.label}>Select Date</p>
               <input
