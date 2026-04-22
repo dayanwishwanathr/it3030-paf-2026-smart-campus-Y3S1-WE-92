@@ -59,6 +59,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/bookings/**").hasAnyRole("USER", "MANAGER", "ADMIN")
 
                 // ── Tickets: TECHNICIAN + ADMIN manage, USER creates ──────
+                // Attachment download is public so <img> tags work in browser
+                .requestMatchers(HttpMethod.GET, "/api/tickets/attachments/**").permitAll()
                 .requestMatchers("/api/tickets/**").hasAnyRole("USER", "TECHNICIAN", "MANAGER", "ADMIN")
 
                 // ── Notifications: any logged-in user ─────────────────────
