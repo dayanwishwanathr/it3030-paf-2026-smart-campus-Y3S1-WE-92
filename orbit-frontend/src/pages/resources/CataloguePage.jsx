@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { QRCodeSVG } from 'qrcode.react'
 import Layout from '../../components/layout/Layout'
 import { useAuth } from '../../context/AuthContext'
 import axiosInstance from '../../api/axiosInstance'
@@ -7,6 +8,16 @@ import axiosInstance from '../../api/axiosInstance'
 // ── Cloudinary config ────────────────────────────────────────────────────────
 const CLOUDINARY_CLOUD  = 'dkztweyhk'
 const CLOUDINARY_PRESET = 'orbit_uploads'
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+const formatTime = (timeStr) => {
+  if (!timeStr) return '';
+  const [h, m] = timeStr.split(':');
+  let hour = parseInt(h, 10);
+  const ampm = hour >= 12 ? 'p.m' : 'a.m';
+  hour = hour % 12 || 12; // convert 0 to 12
+  return `${hour}:${m} ${ampm}`;
+}
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const TYPES    = ['ALL', 'LECTURE_HALL', 'LAB', 'MEETING_ROOM', 'EQUIPMENT']
@@ -146,7 +157,7 @@ const TypeTag = ({ type }) => (
 )
 
 // ── ResourceCard ──────────────────────────────────────────────────────────────
-const ResourceCard = ({ resource, canManage, onBook, onEdit, onDelete }) => {
+const ResourceCard = ({ resource, canManage, onBook, onEdit, onDelete, onShowQr }) => {
   const isActive = resource.availabilityStatus === 'ACTIVE'
   const [hovered, setHovered] = useState(false)
 
@@ -204,7 +215,7 @@ const ResourceCard = ({ resource, canManage, onBook, onEdit, onDelete }) => {
             <span style={{ color: '#94a3b8', fontWeight: '500' }}>{resource.capacity}</span>
             {' '}seats
           </span>
-          <span>{resource.availableFrom} – {resource.availableTo}</span>
+          <span>{formatTime(resource.availableFrom)} – {formatTime(resource.availableTo)}</span>
         </div>
 
         {/* Divider */}
@@ -229,6 +240,27 @@ const ResourceCard = ({ resource, canManage, onBook, onEdit, onDelete }) => {
             }}
           >
             {isActive ? 'Book' : 'Unavailable'}
+          </button>
+
+          <button
+            onClick={() => onShowQr(resource)}
+            style={{
+              padding:      '6px 12px',
+              borderRadius: '6px',
+              background:   '#131929',
+              border:       '1px solid #1e2d45',
+              color:        '#06b6d4',
+              cursor:       'pointer',
+              display:      'flex', alignItems: 'center', justifyContent: 'center'
+            }}
+            title="View QR Code"
+          >
+            <svg fill="currentColor" width="16" height="16" viewBox="0 0 24 24">
+              <rect x="3" y="3" width="7" height="7" rx="1" />
+              <rect x="14" y="3" width="7" height="7" rx="1" />
+              <rect x="3" y="14" width="7" height="7" rx="1" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M14 14h7v7h-7z" />
+            </svg>
           </button>
 
           {canManage && (
@@ -268,6 +300,59 @@ const ResourceCard = ({ resource, canManage, onBook, onEdit, onDelete }) => {
             </>
           )}
         </div>
+      </div>
+    </div>
+  )
+}
+
+// ── QrModal ───────────────────────────────────────────────────────────────────
+const QrModal = ({ resource, onClose }) => {
+  if (!resource) return null
+  
+  const url = `${window.location.protocol}//${window.location.host}/resources/preview/${resource.id}`
+
+  return (
+    <div
+      onClick={e => e.target === e.currentTarget && onClose()}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 60,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: '16px',
+        background: 'rgba(0,0,0,0.85)',
+        backdropFilter: 'blur(8px)',
+      }}
+    >
+      <div style={{
+        ...S.card, width: '100%', maxWidth: '320px', padding: '24px', textAlign: 'center',
+        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px'
+      }}>
+        <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: '#f1f5f9' }}>{resource.name}</h3>
+        <p style={{ margin: 0, fontSize: '13px', color: '#94a3b8' }}>Scan to book this resource</p>
+        
+        <div style={{ 
+          background: '#fff', padding: '16px', borderRadius: '12px',
+          display: 'flex', justifyContent: 'center', alignItems: 'center',
+          boxShadow: '0 4px 20px rgba(6,182,212,0.15)'
+        }}>
+          <QRCodeSVG value={url} size={200} level="H" includeMargin={false} />
+        </div>
+
+        <p style={{ margin: 0, fontSize: '11px', color: '#475569', wordBreak: 'break-all' }}>
+          <a href={url} target="_blank" rel="noopener noreferrer" style={{ color: '#06b6d4', textDecoration: 'none' }}>
+            {url}
+          </a>
+        </p>
+
+        <button
+          onClick={onClose}
+          style={{
+            width: '100%', padding: '10px', borderRadius: '8px', marginTop: '8px',
+            fontSize: '13px', fontWeight: '600',
+            background: '#1a2540', border: '1px solid #243050', color: '#f1f5f9', cursor: 'pointer',
+          }}
+        >
+          Close
+        </button>
       </div>
     </div>
   )
@@ -546,8 +631,9 @@ const CataloguePage = () => {
   const [search,        setSearch]        = useState('')
   const [typeFilter,    setTypeFilter]    = useState('ALL')
   const [statusFilter,  setStatusFilter]  = useState('ALL')
-  const [modalResource, setModalResource] = useState(null)
-  const [saving,        setSaving]        = useState(false)
+  const [modalResource,  setModalResource]  = useState(null)
+  const [showQrResource, setShowQrResource] = useState(null)
+  const [saving,         setSaving]         = useState(false)
 
   const canManage = user?.role === 'MANAGER' || user?.role === 'ADMIN'
 
@@ -767,9 +853,18 @@ const CataloguePage = () => {
               onBook={handleBook}
               onEdit={res => setModalResource(res)}
               onDelete={handleDelete}
+              onShowQr={res => setShowQrResource(res)}
             />
           ))}
         </div>
+      )}
+
+      {/* ── Qr Modal ── */}
+      {showQrResource !== null && (
+        <QrModal
+          resource={showQrResource}
+          onClose={() => setShowQrResource(null)}
+        />
       )}
 
       {/* ── Modal ── */}

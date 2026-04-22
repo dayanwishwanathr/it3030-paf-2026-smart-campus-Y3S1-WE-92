@@ -35,6 +35,19 @@ public class BookingController {
         return ResponseEntity.ok(bookingService.getMyBookings(userId, status));
     }
 
+    /**
+     * Returns all bookings for a specific resource on a specific date.
+     * Used by the Availability Viewer feature.
+     * Accessible to all authenticated users.
+     */
+    @GetMapping("/availability")
+    public ResponseEntity<List<BookingResponse>> getAvailability(
+            @RequestParam String resourceId,
+            @RequestParam String date,
+            Authentication authentication) {
+        return ResponseEntity.ok(bookingService.getAvailabilityForDate(resourceId, date));
+    }
+
     @GetMapping
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
     public ResponseEntity<List<BookingResponse>> getAllBookings(
@@ -51,6 +64,12 @@ public class BookingController {
         String userId = getUserId(authentication);
         String role = getRole(authentication);
         return ResponseEntity.ok(bookingService.getBookingById(id, userId, role));
+    }
+
+    @GetMapping("/public/resource/{resourceId}")
+    public ResponseEntity<List<BookingResponse>> getPublicBookingsByResource(@PathVariable String resourceId) {
+        // Only return APPROVED bookings publicly
+        return ResponseEntity.ok(bookingService.getAllBookings(BookingStatus.APPROVED, resourceId, null));
     }
 
     // ── Write Endpoints ───────────────────────────────────────────────────────

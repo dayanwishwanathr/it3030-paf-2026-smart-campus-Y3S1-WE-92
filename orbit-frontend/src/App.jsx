@@ -15,6 +15,7 @@ import CataloguePage  from './pages/resources/CataloguePage'
 import BookResourcePage   from './pages/bookings/BookResourcePage'
 import MyBookingsPage     from './pages/bookings/MyBookingsPage'
 import ManageBookingsPage from './pages/bookings/ManageBookingsPage'
+import AvailabilityPage   from './pages/bookings/AvailabilityPage'
 
 // Admin pages
 import AdminDashboard     from './pages/admin/AdminDashboard'
@@ -23,12 +24,16 @@ import UserManagementPage from './pages/admin/UserManagementPage'
 // Manager pages
 import ManagerDashboard from './pages/manager/ManagerDashboard'
 
+// Public pages
+import PublicResourcePreviewPage from './pages/resources/PublicResourcePreviewPage'
+
 const App = () => {
   return (
     <AuthProvider>
       <Routes>
 
         {/* ── Public ──────────────────────────────────────────────── */}
+        <Route path="/resources/preview/:id" element={<PublicResourcePreviewPage />} />
         <Route path="/login"          element={<LoginPage />} />
         <Route path="/register"       element={<RegisterPage />} />
         <Route path="/oauth2/success" element={<OAuth2Success />} />
@@ -54,6 +59,12 @@ const App = () => {
         <Route path="/bookings" element={
           <ProtectedRoute allowedRoles={['USER', 'TECHNICIAN', 'ADMIN', 'MANAGER']}>
             <MyBookingsPage />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/bookings/availability" element={
+          <ProtectedRoute allowedRoles={['USER', 'TECHNICIAN', 'ADMIN', 'MANAGER']}>
+            <AvailabilityPage />
           </ProtectedRoute>
         } />
 

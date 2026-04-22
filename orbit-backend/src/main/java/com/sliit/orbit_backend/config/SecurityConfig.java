@@ -46,6 +46,7 @@ public class SecurityConfig {
                 // ── Public ────────────────────────────────────────────────
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/error").permitAll()
+                .requestMatchers("/api/bookings/public/**").permitAll()
 
                 // ── Resources: public read, MANAGER manages ───────────────
                 .requestMatchers(HttpMethod.GET,    "/api/resources/**").permitAll()
@@ -95,9 +96,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        // Read comma-separated origins from application.properties
-        List<String> origins = Arrays.asList(allowedOriginsRaw.split(","));
-        config.setAllowedOrigins(origins);
+        config.setAllowedOriginPatterns(List.of("*")); // Allows any local IP dynamically
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);

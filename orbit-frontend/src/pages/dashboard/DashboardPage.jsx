@@ -82,19 +82,17 @@ const ActionCard = ({ icon, title, desc, to, accentRgb, stagger }) => (
 
 // ── Role config ───────────────────────────────────────────────────────────────
 const ROLE_CFG = {
-  USER:       { color: 'cyan',   label: '👤 USER',       rgb: '6,182,212',   heroClass: 'hero-cyan'    },
-  TECHNICIAN: { color: 'amber',  label: '🔧 TECHNICIAN', rgb: '245,158,11',  heroClass: 'hero-cyan'    },
-  ADMIN:      { color: 'purple', label: '⚡ ADMIN',      rgb: '168,85,247',  heroClass: 'hero-purple'  },
-  MANAGER:    { color: 'green',  label: '🏗️ MANAGER',   rgb: '16,185,129',  heroClass: 'hero-emerald' },
+  USER:       { color: 'text-cyan-500',  label: '👤 USER',       rgb: '6,182,212',   heroClass: 'hero-cyan'    },
+  TECHNICIAN: { color: 'text-amber-500', label: '🔧 TECHNICIAN', rgb: '245,158,11',  heroClass: 'hero-cyan'    },
+  ADMIN:      { color: 'text-purple-500',label: '⚡ ADMIN',      rgb: '168,85,247',  heroClass: 'hero-purple'  },
+  MANAGER:    { color: 'text-emerald-500',label: '🏗️ MANAGER',   rgb: '16,185,129',  heroClass: 'hero-emerald' },
 }
 
 const DashboardPage = () => {
-  const navigate = useNavigate()
   const { user } = useAuth()
   const role = user?.role ?? 'USER'
   const cfg = ROLE_CFG[role] ?? ROLE_CFG.USER
   const firstName = user?.name?.split(' ')[0] ?? 'there'
-  const isTech = role === 'TECHNICIAN'
 
   const [stats, setStats] = useState({ total: '—', approved: '—', pending: '—' })
 
@@ -111,11 +109,11 @@ const DashboardPage = () => {
   return (
     <Layout>
       {/* ── Hero banner ── */}
-      <div className={`relative overflow-hidden rounded-2xl p-6 mb-6 ${cfg.heroClass}`}>
+      <div className="relative overflow-hidden rounded-2xl p-6 mb-6" style={{ background: `rgba(${cfg.rgb},0.05)`, border: `1px solid rgba(${cfg.rgb},0.15)` }}>
         {/* Dot grid texture */}
         <div className="absolute inset-0 dot-grid opacity-40" />
         {/* Right glow blob */}
-        <div className="absolute -right-10 -top-10 w-48 h-48 rounded-full"
+        <div className="absolute -right-10 -top-10 w-48 h-48 rounded-full pointer-events-none"
           style={{ background: `radial-gradient(circle, rgba(${cfg.rgb},0.2) 0%, transparent 70%)` }} />
 
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
@@ -136,7 +134,6 @@ const DashboardPage = () => {
           {/* Right: stat chips */}
           <div className="flex flex-wrap gap-3">
             <StatChip label="Bookings" value={stats.total} color="6,182,212" />
-            <StatChip label="Tickets" value="—" color="245,158,11" />
             <StatChip label="Approved" value={stats.approved} color="16,185,129" />
             <StatChip label="Pending" value={stats.pending} color="168,85,247" />
           </div>
@@ -148,7 +145,7 @@ const DashboardPage = () => {
         <h2 className="text-xl font-bold text-white mb-4">Quick Actions</h2>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <ActionCard
-            icon={<BookIcon />}
+            icon={<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/></svg>}
             title="Book a Resource"
             desc="Reserve campus rooms, labs, and equipment 24⁄7"
             to="/bookings/new"
@@ -162,7 +159,7 @@ const DashboardPage = () => {
             accentRgb={cfg.rgb}
           />
           <ActionCard
-            icon={<BuildingIcon />}
+            icon={<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>}
             title="Browse Resources"
             desc="Explore all available campus facilities"
             to="/resources"

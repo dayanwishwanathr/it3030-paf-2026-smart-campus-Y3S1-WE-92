@@ -182,7 +182,9 @@ const LoginPage = () => {
       >
 
         {/* ══ LEFT PANEL ══════════════════════════════════════════════════════ */}
-        <div style={{
+        <div 
+          className="hide-on-mobile"
+          style={{
           width: '50%',
           display: 'flex', flexDirection: 'column',
           position: 'relative', overflow: 'hidden',
@@ -255,7 +257,9 @@ const LoginPage = () => {
         {/* ══ END LEFT ══ */}
 
         {/* ══ RIGHT PANEL ═════════════════════════════════════════════════════ */}
-        <div style={{
+        <div 
+          className="w-full-on-mobile"
+          style={{
           flex: 1,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           padding: '36px 44px',

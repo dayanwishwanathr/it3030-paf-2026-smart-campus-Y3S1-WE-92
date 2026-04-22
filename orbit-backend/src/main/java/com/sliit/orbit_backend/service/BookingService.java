@@ -68,6 +68,20 @@ public class BookingService {
     }
 
     /**
+     * Returns ALL bookings (any status except CANCELLED) for a resource on a specific date.
+     * Used by the Availability Viewer — visible to all authenticated users.
+     */
+    public List<BookingResponse> getAvailabilityForDate(String resourceId, String date) {
+        LocalDate parsedDate = LocalDate.parse(date);
+        List<Booking> bookings = bookingRepository.findByResourceIdAndDate(resourceId, parsedDate);
+        // Exclude CANCELLED bookings — those slots are free again
+        return bookings.stream()
+                .filter(b -> b.getStatus() != BookingStatus.CANCELLED)
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    /**
      * Returns a single booking by ID.
      * Owners can access their own; ADMIN/MANAGER can access any.
      */
@@ -149,9 +163,13 @@ public class BookingService {
     }
 
     private void checkConflicts(String resourceId, java.time.LocalDate date, java.time.LocalTime startTime, java.time.LocalTime endTime) {
-        List<Booking> conflicts = bookingRepository.findConflictingBookings(resourceId, date, startTime, endTime);
-        if (!conflicts.isEmpty()) {
-            throw new IllegalArgumentException("The resource is already booked during this time window.");
+        List<Booking> approvedBookings = bookingRepository.findByResourceIdAndDateAndStatus(resourceId, date, BookingStatus.APPROVED);
+        
+        for (Booking existing : approvedBookings) {
+            // Overlap condition: existingStart < requestEnd AND existingEnd > requestStart
+            if (existing.getStartTime().isBefore(endTime) && existing.getEndTime().isAfter(startTime)) {
+                throw new IllegalArgumentException("Time Slot is already booked.");
+            }
         }
     }
 
@@ -160,6 +178,10 @@ public class BookingService {
         if (booking.getStatus() != BookingStatus.PENDING) {
             throw new IllegalStateException("Only PENDING bookings can be approved");
         }
+        
+        // Ensure no other approved booking already occupies this time slot
+        checkConflicts(booking.getResourceId(), booking.getDate(), booking.getStartTime(), booking.getEndTime());
+
         booking.setStatus(BookingStatus.APPROVED);
         booking.setNotes(notes);
         Booking saved = bookingRepository.save(booking);

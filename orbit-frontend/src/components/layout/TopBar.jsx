@@ -1,4 +1,4 @@
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate, Link } from 'react-router-dom'
 import NotificationPanel from '../notifications/NotificationPanel'
 import { useAuth } from '../../context/AuthContext'
 
@@ -11,6 +11,7 @@ const PAGE_TITLES = {
   '/bookings':          { label: 'Bookings',        icon: '📅' },
   '/bookings/manage':   { label: 'Manage Bookings', icon: '📅' },
   '/bookings/new':      { label: 'New Booking',     icon: '➕' },
+  '/bookings/availability': { label: 'Availability Viewer', icon: '📊' },
   '/tickets':           { label: 'Tickets',         icon: '🎫' },
   '/tickets/new':       { label: 'New Ticket',      icon: '➕' },
 }
@@ -22,9 +23,10 @@ const ROLE_AVATAR = {
   USER:       'role-user-avatar',
 }
 
-const TopBar = () => {
-  const location = useLocation()
-  const { user } = useAuth()
+const TopBar = ({ onMenuClick }) => {
+  const navigate  = useNavigate()
+  const location  = useLocation()
+  const { user }  = useAuth()
 
   const role     = user?.role ?? 'USER'
   const initials = user?.name?.charAt(0).toUpperCase() ?? '?'
@@ -50,6 +52,15 @@ const TopBar = () => {
     >
       {/* ── Left: page title + date ── */}
       <div className="flex items-center gap-3 min-w-0">
+        <button 
+          onClick={onMenuClick}
+          className="show-on-mobile"
+          style={{ background: 'transparent', border: 'none', color: '#f1f5f9', cursor: 'pointer', padding: '4px', marginRight: '4px' }}
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} width={24} height={24}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
         <div className="flex items-center gap-2">
           <span className="text-base leading-none select-none">{icon}</span>
           <h1 className="text-[15px] font-bold truncate" style={{ color: '#f1f5f9' }}>
@@ -62,8 +73,45 @@ const TopBar = () => {
         </span>
       </div>
 
-      {/* ── Right: notifications + avatar chip ── */}
+      {/* ── Right: availability shortcut + notifications + avatar chip ── */}
       <div className="flex items-center gap-2 flex-shrink-0">
+        {/* Availability Viewer quick-access icon */}
+        <button
+          onClick={() => navigate('/bookings/availability')}
+          title="Check Resource Availability"
+          style={{
+            width: '34px', height: '34px',
+            borderRadius: '8px',
+            background: location.pathname === '/bookings/availability'
+              ? 'rgba(6,182,212,0.15)'
+              : 'rgba(255,255,255,0.04)',
+            border: location.pathname === '/bookings/availability'
+              ? '1px solid rgba(6,182,212,0.5)'
+              : '1px solid rgba(255,255,255,0.08)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            flexShrink: 0,
+            boxShadow: location.pathname === '/bookings/availability'
+              ? '0 0 10px rgba(6,182,212,0.2)'
+              : 'none',
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.background = 'rgba(6,182,212,0.12)'
+            e.currentTarget.style.borderColor = 'rgba(6,182,212,0.4)'
+          }}
+          onMouseLeave={e => {
+            if (location.pathname !== '/bookings/availability') {
+              e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
+              e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'
+            }
+          }}
+        >
+          <svg style={{ width: '15px', height: '15px', color: '#06b6d4' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+        </button>
+
         <NotificationPanel />
 
         {/* Avatar pill */}
