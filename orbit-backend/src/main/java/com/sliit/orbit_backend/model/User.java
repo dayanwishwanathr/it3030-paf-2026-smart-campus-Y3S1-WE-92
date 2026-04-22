@@ -31,20 +31,11 @@ public class User {
 
     private String password; // null for Google OAuth users
 
-    private Role role; // USER, ADMIN, TECHNICIAN, MANAGER
+    private Role role; // USER, ADMIN, TECHNICIAN
 
     private AuthProvider provider; // LOCAL, GOOGLE
 
     private String profilePicture;
-
-    // ── Campus verification ────────────────────────────────────────────────────
-    @Indexed(unique = true, sparse = true) // sparse = only unique when non-null
-    private String campusId;   // e.g. "IT23413474" — null until verified
-
-    private String faculty;    // "Computing" | "Engineering" | "Business" | "Humanities & Science"
-
-    @Builder.Default
-    private boolean verified = false; // false until valid campusId saved
 
     @CreatedDate
     private LocalDateTime createdAt;

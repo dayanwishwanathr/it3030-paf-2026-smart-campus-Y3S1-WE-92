@@ -19,8 +19,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DataInitializer implements CommandLineRunner {
 
-    private final UserRepository  userRepository;
-    private final PasswordEncoder passwordEncoder;
+    private final UserRepository     userRepository;
+    private final PasswordEncoder    passwordEncoder;
 
     @Override
     public void run(String... args) {
@@ -38,20 +38,11 @@ public class DataInitializer implements CommandLineRunner {
                     .password(passwordEncoder.encode("Admin@1234"))
                     .role(Role.ADMIN)
                     .provider(AuthProvider.LOCAL)
-                    .verified(true)   // staff accounts are pre-verified
                     .build();
             userRepository.save(Objects.requireNonNull(adminUser, "Admin user must not be null"));
             log.info("✅ Admin seeded → {}", email);
         } else {
-            // Ensure existing admin is marked verified (migration for existing deployments)
-            userRepository.findByEmail(email).ifPresent(u -> {
-                if (!u.isVerified()) {
-                    u.setVerified(true);
-                    userRepository.save(u);
-                    log.info("✅ Existing admin marked as verified.");
-                }
-            });
-            log.info("ℹ️  Admin already exists, skipping seed.");
+            log.info("ℹ️  Admin already exists, skipping.");
         }
     }
 
@@ -65,20 +56,11 @@ public class DataInitializer implements CommandLineRunner {
                     .password(passwordEncoder.encode("Manager@1234"))
                     .role(Role.MANAGER)
                     .provider(AuthProvider.LOCAL)
-                    .verified(true)   // staff accounts are pre-verified
                     .build();
             userRepository.save(Objects.requireNonNull(managerUser, "Manager user must not be null"));
             log.info("✅ Manager seeded → {}", email);
         } else {
-            // Ensure existing manager is marked verified
-            userRepository.findByEmail(email).ifPresent(u -> {
-                if (!u.isVerified()) {
-                    u.setVerified(true);
-                    userRepository.save(u);
-                    log.info("✅ Existing manager marked as verified.");
-                }
-            });
-            log.info("ℹ️  Manager already exists, skipping seed.");
+            log.info("ℹ️  Manager already exists, skipping.");
         }
     }
 }
