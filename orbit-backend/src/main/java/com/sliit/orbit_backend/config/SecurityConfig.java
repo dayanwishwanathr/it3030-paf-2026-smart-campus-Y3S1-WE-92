@@ -40,47 +40,46 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            // IF_REQUIRED: sessions are only created for OAuth2 state storage.
-            // API calls remain stateless (JWT-based, no session cookie used).
+            // IF_REQUIRED: sessions created only for OAuth2 state storage
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
             .authorizeHttpRequests(auth -> auth
 
-                // ── Public ────────────────────────────────────────────────
+                // Public auth endpoints
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/error").permitAll()
                 .requestMatchers("/api/bookings/public/**").permitAll()
 
-                // ── OAuth2 flow — must be permit all or Spring can't process callback
+                // OAuth2 flow
                 .requestMatchers("/oauth2/**").permitAll()
                 .requestMatchers("/login/oauth2/**").permitAll()
                 .requestMatchers("/login/**").permitAll()
 
-                // ── Self-service profile (any authenticated user) ─────────
+                // Self-service profile (any authenticated user)
                 .requestMatchers("/api/users/me").authenticated()
                 .requestMatchers("/api/users/me/profile").authenticated()
 
-                // ── Resources: public read, MANAGER manages ───────────────
+                // Resources: public read, MANAGER/ADMIN write
                 .requestMatchers(HttpMethod.GET,    "/api/resources/**").permitAll()
                 .requestMatchers(HttpMethod.POST,   "/api/resources/**").hasAnyRole("MANAGER", "ADMIN")
                 .requestMatchers(HttpMethod.PUT,    "/api/resources/**").hasAnyRole("MANAGER", "ADMIN")
                 .requestMatchers(HttpMethod.PATCH,  "/api/resources/**").hasAnyRole("MANAGER", "ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/resources/**").hasAnyRole("MANAGER", "ADMIN")
 
-                // ── Bookings: MANAGER approves/rejects, USER creates ──────
+                // Bookings
                 .requestMatchers("/api/bookings/**").hasAnyRole("USER", "MANAGER", "ADMIN")
 
-                // ── Tickets: TECHNICIAN + ADMIN manage, USER creates ──────
+                // Tickets
                 .requestMatchers(HttpMethod.GET, "/api/tickets/attachments/**").permitAll()
                 .requestMatchers("/api/tickets/**").hasAnyRole("USER", "TECHNICIAN", "MANAGER", "ADMIN")
 
-                // ── Notifications: any logged-in user ─────────────────────
+                // Notifications
                 .requestMatchers("/api/notifications/**").authenticated()
 
-                // ── Users: ADMIN only (except /me routes above) ───────────
+                // User management: ADMIN only (except /me routes above)
                 .requestMatchers("/api/users/**").hasRole("ADMIN")
 
-                // ── Everything else requires login ────────────────────────
+                // Everything else requires login
                 .anyRequest().authenticated()
             )
             .exceptionHandling(ex -> ex
@@ -112,7 +111,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOriginPatterns(List.of("*")); // Allows any local IP dynamically
+        config.setAllowedOriginPatterns(List.of("*"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);

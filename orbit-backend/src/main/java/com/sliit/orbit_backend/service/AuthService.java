@@ -24,13 +24,14 @@ public class AuthService {
     private final JwtUtil jwtUtil;
 
     public AuthResponse register(RegisterRequest request) {
-        if (userRepository.existsByEmail(request.getEmail())) {
+        String email = request.getEmail().trim().toLowerCase();
+        if (userRepository.findByEmailIgnoreCase(email).isPresent()) {
             throw new IllegalArgumentException("Email is already registered");
         }
 
         User user = User.builder()
                 .name(request.getName())
-                .email(request.getEmail())
+                .email(email)
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(Role.USER)
                 .provider(AuthProvider.LOCAL)
@@ -47,7 +48,8 @@ public class AuthService {
     }
 
     public AuthResponse login(LoginRequest request) {
-        User user = userRepository.findByEmail(request.getEmail())
+        String email = request.getEmail().trim().toLowerCase();
+        User user = userRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new BadCredentialsException("Invalid email or password"));
 
         // Allow Google OAuth users who have set a password via profile page
@@ -67,8 +69,11 @@ public class AuthService {
     }
 
     public AuthResponse getCurrentUser(String email) {
-        User user = userRepository.findByEmail(Objects.requireNonNull(email, "Email must not be null"))
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        // Sanitize email from JWT — trim whitespace and lowercase for consistent lookup
+        String normalizedEmail = email == null ? null : email.trim().toLowerCase();
+        User user = userRepository.findByEmailIgnoreCase(
+                Objects.requireNonNull(normalizedEmail, "Email must not be null"))
+                .orElseThrow(() -> new RuntimeException("User not found: " + email));
 
         // Always generate a fresh token so verified/campusId are up-to-date
         String token = jwtUtil.generateToken(
