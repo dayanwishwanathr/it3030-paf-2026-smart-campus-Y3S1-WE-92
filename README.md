@@ -1,14 +1,14 @@
-# SLIIT Orbit – Smart Campus Operations Hub
+# SLIIT Orbit - Smart Campus Operations Hub
 
 <img width="210" height="55" alt="Orbit Logo" src="https://github.com/user-attachments/assets/bbdc4ab4-1f85-442c-aa04-cb38c9325efd" />
 
-> A campus management platform built for SLIIT — handles resource bookings, issue tickets, and user management all in one place.
+> A campus management platform built for SLIIT - handles resource bookings, issue tickets, and user management all in one place.
 
 ---
 
 ## What is this?
 
-Orbit is a full-stack web app we built as part of the IT3030 Programming and Frameworks module (2026, Y3S1, Group WE-92). The idea was simple: SLIIT has a lot of shared campus resources — labs, rooms, equipment — and no good way to manage who's booking what or report when something's broken. Orbit tries to fix that.
+Orbit is a full-stack web app we built as part of the IT3030 Programming and Frameworks module (2026, Y3S1, Group WE-92). The idea was simple: SLIIT has a lot of shared campus resources - labs, rooms, equipment, and no good way to manage who's booking what or report when something's broken. Orbit tries to fix that.
 
 Students can browse available resources and make bookings. If something breaks, they can raise a support ticket. Technicians pick up those tickets and handle them. Managers oversee the resource catalogue and approve or reject bookings. Admins handle user accounts and roles. It's not a huge system, but it covers the real workflows pretty well.
 
@@ -96,7 +96,7 @@ Opens at `http://localhost:5173`.
 ## Features
 
 **Resource Catalogue**
-- Browse campus resources (public, no login needed)
+- Browse campus resources
 - Managers can add, edit, or remove resources
 - QR code preview for each resource
 
@@ -135,13 +135,13 @@ Opens at `http://localhost:5173`.
 
 ## Auth
 
-Login works two ways — email/password (JWT-based) or Google Sign-In (OAuth2). After either flow, the frontend gets a JWT which it attaches to every API request. Sessions aren't stored server-side; it's stateless except for the OAuth2 state cookie during the login redirect.
+Login works two ways - email/password (JWT-based) or Google Sign-In (OAuth2). After either flow, the frontend gets a JWT which it attaches to every API request. Sessions aren't stored server-side; it's stateless except for the OAuth2 state cookie during the login redirect.
 
 ---
 
 ## Notes
 
-- The `mongodb_data/` folder in the root is for local dev only — it's not committed
+- The `mongodb_data/` folder in the root is for local dev only - it's not committed
 - Backend CORS is configured to accept any origin in dev (`allowedOriginPatterns = *`), tighten this before any real deployment
 - There's a seed/init package (`com.sliit.orbit_backend.init`) that creates a default admin account on first run
 
