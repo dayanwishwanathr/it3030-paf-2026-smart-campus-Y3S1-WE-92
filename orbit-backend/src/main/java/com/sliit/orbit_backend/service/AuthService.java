@@ -24,15 +24,15 @@ public class AuthService {
     private final JwtUtil jwtUtil;
 
     public AuthResponse register(RegisterRequest request) {
-        // Check if email already taken
-        if (userRepository.existsByEmail(request.getEmail())) {
+        String email = request.getEmail().trim().toLowerCase();
+        if (userRepository.findByEmailIgnoreCase(email).isPresent()) {
             throw new IllegalArgumentException("Email is already registered");
         }
 
         // Build and save new user
         User user = User.builder()
                 .name(request.getName())
-                .email(request.getEmail())
+                .email(email)
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(Role.USER)
                 .provider(AuthProvider.LOCAL)
@@ -54,8 +54,8 @@ public class AuthService {
     }
 
     public AuthResponse login(LoginRequest request) {
-        // Find user by email
-        User user = userRepository.findByEmail(request.getEmail())
+        String email = request.getEmail().trim().toLowerCase();
+        User user = userRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new BadCredentialsException("Invalid email or password"));
 
         // Block Google OAuth users from password login
@@ -71,21 +71,28 @@ public class AuthService {
         // Generate token and return response
         String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
 
-        return AuthResponse.builder()
-                .token(token)
-                .id(user.getId())
-                .name(user.getName())
-                .email(user.getEmail())
-                .role(user.getRole().name())
-                .profilePicture(user.getProfilePicture())
-                .build();
+        return buildAuthResponse(token, user);
     }
 
     public AuthResponse getCurrentUser(String email) {
-        User user = userRepository.findByEmail(Objects.requireNonNull(email, "Email must not be null"))
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        // Sanitize email from JWT — trim whitespace and lowercase for consistent lookup
+        String normalizedEmail = email == null ? null : email.trim().toLowerCase();
+        User user = userRepository.findByEmailIgnoreCase(
+                Objects.requireNonNull(normalizedEmail, "Email must not be null"))
+                .orElseThrow(() -> new RuntimeException("User not found: " + email));
 
+        // Always generate a fresh token so verified/campusId are up-to-date
+        String token = jwtUtil.generateToken(
+                user.getEmail(), user.getRole().name(),
+                user.getCampusId(), user.isVerified());
+
+        return buildAuthResponse(token, user);
+    }
+
+    // ── Helper ────────────────────────────────────────────────────────────────
+    private AuthResponse buildAuthResponse(String token, User user) {
         return AuthResponse.builder()
+                .token(token)
                 .id(user.getId())
                 .name(user.getName())
                 .email(user.getEmail())

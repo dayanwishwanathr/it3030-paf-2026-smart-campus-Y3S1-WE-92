@@ -88,7 +88,7 @@ const ModuleCard = ({ icon, title, desc, to, accentRgb = '99,102,241', stagger }
         Open →
       </span>
     </button>
-  )
+  ) 
 }
 
 // ── Page ─────────────────────────────────────────────────────────────────────
