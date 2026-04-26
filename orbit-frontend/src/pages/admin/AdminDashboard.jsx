@@ -108,7 +108,7 @@ const ModuleCard = ({ icon, title, desc, to, accentRgb = '99,102,241' }) => {
         Open →
       </span>
     </button>
-  )
+  ) 
 }
 
 // ── Page ─────────────────────────────────────────────────────────────────────
@@ -132,10 +132,10 @@ const AdminDashboard = () => {
               System Control
             </p>
             <h2 style={{ fontSize: 28, fontWeight: 800, color: '#f1f5f9', margin: 0, lineHeight: 1.2 }}>
-              Admin Panel — Welcome Back
+              Admin Panel - Welcome Back 👋
             </h2>
             <p style={{ fontSize: 14, color: '#64748b', margin: '10px 0 16px', lineHeight: 1.6 }}>
-              Full system control — users, resources, bookings, tickets.
+              Full system control - users, resources, bookings, tickets.
             </p>
             <span style={{
               display: 'inline-flex', alignItems: 'center', gap: 6,
