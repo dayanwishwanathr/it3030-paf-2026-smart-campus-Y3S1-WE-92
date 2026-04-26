@@ -67,7 +67,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.DELETE, "/api/resources/**").hasAnyRole("MANAGER", "ADMIN")
 
                 // Bookings
-                .requestMatchers("/api/bookings/**").hasAnyRole("USER", "MANAGER", "ADMIN")
+                .requestMatchers("/api/bookings/**").hasAnyRole("USER", "TECHNICIAN", "MANAGER", "ADMIN")
 
                 // Tickets
                 .requestMatchers(HttpMethod.GET, "/api/tickets/attachments/**").permitAll()
