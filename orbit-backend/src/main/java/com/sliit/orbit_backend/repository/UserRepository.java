@@ -11,6 +11,8 @@ public interface UserRepository extends MongoRepository<User, String> {
 
     Optional<User> findByEmail(String email);
 
+    Optional<User> findByEmailIgnoreCase(String email);
+
     boolean existsByEmail(String email);
 
     java.util.List<User> findByRoleIn(java.util.List<com.sliit.orbit_backend.model.enums.Role> roles);

@@ -43,33 +43,42 @@ public class SecurityConfig {
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
 
-                // ── Public ────────────────────────────────────────────────
+                // Public auth endpoints
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/error").permitAll()
                 .requestMatchers("/api/bookings/public/**").permitAll()
 
-                // ── Resources: public read, MANAGER manages ───────────────
+                // OAuth2 flow
+                .requestMatchers("/oauth2/**").permitAll()
+                .requestMatchers("/login/oauth2/**").permitAll()
+                .requestMatchers("/login/**").permitAll()
+
+                // Self-service profile (any authenticated user)
+                .requestMatchers("/api/users/me").authenticated()
+                .requestMatchers("/api/users/me/profile").authenticated()
+
+                // ── Resources: public read, MANAGER/ADMIN write ───────────────
                 .requestMatchers(HttpMethod.GET,    "/api/resources/**").permitAll()
                 .requestMatchers(HttpMethod.POST,   "/api/resources/**").hasAnyRole("MANAGER", "ADMIN")
                 .requestMatchers(HttpMethod.PUT,    "/api/resources/**").hasAnyRole("MANAGER", "ADMIN")
                 .requestMatchers(HttpMethod.PATCH,  "/api/resources/**").hasAnyRole("MANAGER", "ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/resources/**").hasAnyRole("MANAGER", "ADMIN")
 
-                // ── Bookings: MANAGER approves/rejects, USER creates ──────
-                .requestMatchers("/api/bookings/**").hasAnyRole("USER", "MANAGER", "ADMIN")
+                // Bookings
+                .requestMatchers("/api/bookings/**").hasAnyRole("USER", "TECHNICIAN", "MANAGER", "ADMIN")
 
                 // ── Tickets: TECHNICIAN + ADMIN manage, USER creates ──────
                 // Attachment download is public so <img> tags work in browser
                 .requestMatchers(HttpMethod.GET, "/api/tickets/attachments/**").permitAll()
                 .requestMatchers("/api/tickets/**").hasAnyRole("USER", "TECHNICIAN", "MANAGER", "ADMIN")
 
-                // ── Notifications: any logged-in user ─────────────────────
+                // Notifications
                 .requestMatchers("/api/notifications/**").authenticated()
 
-                // ── Users: ADMIN only ─────────────────────────────────────
+                // ── Users: ADMIN only (except /me routes above) ─────────────────────────────
                 .requestMatchers("/api/users/**").hasRole("ADMIN")
 
-                // ── Everything else requires login ────────────────────────
+                // Everything else requires login
                 .anyRequest().authenticated()
             )
             .exceptionHandling(ex -> ex
@@ -77,8 +86,7 @@ public class SecurityConfig {
                     response.setStatus(jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED);
                     response.setContentType("application/json");
                     response.getWriter().write("{\"error\":\"Unauthorized\"}");
-                })
-            )
+                }))
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -98,7 +106,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOriginPatterns(List.of("*")); // Allows any local IP dynamically
+        config.setAllowedOriginPatterns(List.of("*"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);

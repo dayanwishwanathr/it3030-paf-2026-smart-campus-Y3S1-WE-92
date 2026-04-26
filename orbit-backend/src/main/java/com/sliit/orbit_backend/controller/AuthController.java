@@ -3,7 +3,9 @@ package com.sliit.orbit_backend.controller;
 import com.sliit.orbit_backend.dto.request.LoginRequest;
 import com.sliit.orbit_backend.dto.request.RegisterRequest;
 import com.sliit.orbit_backend.dto.response.AuthResponse;
+import com.sliit.orbit_backend.security.JwtUtil;
 import com.sliit.orbit_backend.service.AuthService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -22,6 +25,7 @@ import java.util.Map;
 public class AuthController {
 
     private final AuthService authService;
+    private final JwtUtil jwtUtil;
 
     // POST /api/auth/register
     @PostMapping("/register")
@@ -63,14 +67,43 @@ public class AuthController {
 
     // GET /api/auth/me  — returns currently logged-in user info
     @GetMapping("/me")
-    public ResponseEntity<?> getCurrentUser(Authentication authentication) {
+    public ResponseEntity<?> getCurrentUser(Authentication authentication,
+                                            HttpServletRequest request) {
         try {
-            log.info("👤 Getting current user: {}", authentication.getName());
-            AuthResponse response = authService.getCurrentUser(authentication.getName());
-            log.info("✅ Current user fetched: {}", authentication.getName());
+            if (authentication == null) {
+                log.warn("⚠️ /auth/me called but Authentication is null");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("error", "Not authenticated"));
+            }
+
+            // ── Resolve email from whichever auth mechanism is active ───────────
+            String email = null;
+
+            // 1. JWT path: extract email directly from Bearer token (most reliable)
+            String authHeader = request.getHeader("Authorization");
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                String token = authHeader.substring(7);
+                if (jwtUtil.isTokenValid(token)) {
+                    email = jwtUtil.extractEmail(token);
+                }
+            }
+
+            // 2. OAuth2 session path: principal is an OAuth2User — get email attribute
+            if (email == null && authentication.getPrincipal() instanceof OAuth2User oAuth2User) {
+                email = oAuth2User.getAttribute("email");
+            }
+
+            // 3. Last resort: use getName() (works when principal is UserDetails with email as username)
+            if (email == null) {
+                email = authentication.getName();
+            }
+
+            log.info("👤 /auth/me → resolved email = [{}]", email);
+            AuthResponse response = authService.getCurrentUser(email);
+            log.info("✅ Current user fetched: {}", email);
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
-            log.warn("⚠️ User not found: {}", e.getMessage());
+            log.warn("⚠️ User not found in DB: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
